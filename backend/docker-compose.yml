@@ -1,0 +1,202 @@
+version: '3.8'
+
+services:
+  # Infrastructure
+  discovery-server:
+    build: ./discovery-server
+    container_name: smartride-discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - smartride-net
+
+  config-server:
+    build: ./config-server
+    container_name: smartride-config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - discovery-server
+    networks:
+      - smartride-net
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: smartride-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - discovery-server
+      - config-server
+    networks:
+      - smartride-net
+
+  # Databases
+  postgres-user:
+    image: postgres:15-alpine
+    container_name: smartride-db-user
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5431:5432"
+    networks:
+      - smartride-net
+
+  postgres-trip:
+    image: postgres:15-alpine
+    container_name: smartride-db-trip
+    environment:
+      POSTGRES_DB: trip_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    networks:
+      - smartride-net
+
+  postgres-booking:
+    image: postgres:15-alpine
+    container_name: smartride-db-booking
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    networks:
+      - smartride-net
+
+  postgres-payment:
+    image: postgres:15-alpine
+    container_name: smartride-db-payment
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    networks:
+      - smartride-net
+
+  mongo-chat:
+    image: mongo:6.0
+    container_name: smartride-db-chat
+    ports:
+      - "27017:27017"
+    networks:
+      - smartride-net
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: smartride-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - smartride-net
+
+  # Microservices
+  user-service:
+    build: ./user-service
+    container_name: smartride-user-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/user_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - postgres-user
+      - discovery-server
+    networks:
+      - smartride-net
+
+  trip-service:
+    build: ./trip-service
+    container_name: smartride-trip-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-trip:5432/trip_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - postgres-trip
+      - discovery-server
+    networks:
+      - smartride-net
+
+  booking-service:
+    build: ./booking-service
+    container_name: smartride-booking-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-booking:5432/booking_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - postgres-booking
+      - discovery-server
+    networks:
+      - smartride-net
+
+  payment-service:
+    build: ./payment-service
+    container_name: smartride-payment-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - postgres-payment
+      - discovery-server
+    networks:
+      - smartride-net
+
+  rating-chat-service:
+    build: ./rating-chat-service
+    container_name: smartride-rating-chat-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-chat:27017/chat_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - mongo-chat
+      - discovery-server
+    networks:
+      - smartride-net
+
+  notification-tracking-service:
+    build: ./notification-tracking-service
+    container_name: smartride-notification-tracking-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_REDIS_HOST=redis-cache
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - redis-cache
+      - discovery-server
+    networks:
+      - smartride-net
+
+  matching-ia-service:
+    build: ./matching-ia-service
+    container_name: smartride-matching-ia-service
+    ports:
+      - "8087:8087"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - discovery-server
+    networks:
+      - smartride-net
+
+networks:
+  smartride-net:
+    driver: bridge

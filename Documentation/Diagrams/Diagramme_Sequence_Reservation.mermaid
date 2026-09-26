@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    actor Passager as Passager
+    participant Gateway as API Gateway
+    participant IA as Matching Service (IA)
+    participant Trip as Trip Service
+    participant Booking as Booking Service
+    participant Payment as Payment Service
+    participant Notif as Notification Service
+
+    Passager->>Gateway: POST /api/matching/recommend (Départ, Arrivée, Heure)
+    Gateway->>IA: Transmettre requête de matching
+    IA->>Trip: Récupérer trajets disponibles
+    Trip-->>IA: Liste des trajets bruts
+    IA-->>Passager: Proposer trajets optimisés avec score %
+
+    Passager->>Gateway: POST /api/bookings (TrajetID, NbrPlaces)
+    Gateway->>Booking: Créer réservation (Statut: PENDING)
+    Booking->>Trip: Vérifier & Verrouiller sièges
+    Trip-->>Booking: Sièges disponibles & OK
+
+    Passager->>Gateway: POST /api/payments (BookingID, TokenCarte)
+    Gateway->>Payment: Traiter paiement
+    Payment-->>Booking: Confirmation Paiement Réussi (TX_ID)
+
+    Booking->>Booking: Changer statut -> CONFIRMED
+    Booking->>Notif: Envoyer alerte de confirmation
+    Notif-->>Passager: Notification Push / SMS Réservation Confirmée!

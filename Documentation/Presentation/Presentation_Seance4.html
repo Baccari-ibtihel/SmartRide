@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartRide - Présentation Synthétique Séance 4</title>
+    <style>
+        :root {
+            --bg-color: #1e2454;
+            --card-bg: #272f69;
+            --accent-teal: #0e85a3;
+            --accent-light-blue: #eef6fc;
+            --text-color: #ffffff;
+            --text-dark: #1e2454;
+            --text-muted: #b0c4de;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #0b0d1e;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .slide-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 580px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide {
+            display: none;
+            padding: 45px 55px;
+            height: 100%;
+            flex-direction: column;
+            justify-content: space-between;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slide 1 - Title */
+        .title-slide {
+            justify-content: center;
+            position: relative;
+        }
+
+        .title-slide h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .title-slide p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .deco-circle {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, #0e85a3 0%, #0d5c80 70%);
+            border-radius: 50%;
+            opacity: 0.85;
+        }
+
+        .deco-circle-inner {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 100px;
+            height: 100px;
+            background: #147291;
+            border-radius: 50%;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        /* Cards Layout */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card-white {
+            background: var(--accent-light-blue);
+            color: var(--text-dark);
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .card-white h3 {
+            color: var(--accent-teal);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-white ul {
+            list-style-type: none;
+        }
+
+        .card-white li {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .card-white li::before {
+            content: "•";
+            color: var(--accent-teal);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Slide 2 Layout */
+        .grid-2-custom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            height: 100%;
+        }
+
+        .blue-box {
+            background: #192044;
+            border: 1px solid #2e3875;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .blue-box h3 {
+            color: #10b981;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .blue-box p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #d1d5db;
+            margin-bottom: 15px;
+        }
+
+        /* Microservices Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            color: var(--text-dark);
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #f1f5f9;
+            color: var(--bg-color);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        /* Controls Footer */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .btn {
+            background: var(--accent-teal);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #0b6880;
+        }
+
+        .slide-counter {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <!-- Slide 1 -->
+        <div class="slide title-slide active">
+            <div class="deco-circle"><div class="deco-circle-inner"></div></div>
+            <h1>SmartRide</h1>
+            <p>Plateforme de covoiturage intelligente avec matching par IA</p>
+            <div style="margin-top: auto; font-size: 0.85rem; color: var(--text-muted); font-style: italic;">
+                Séance 4 — Présentation synthétique du projet
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slide">
+            <h2>Idée et problématique</h2>
+            <div class="grid-2-custom">
+                <div class="blue-box">
+                    <h3>Idée générale</h3>
+                    <p>SmartRide est une plateforme de covoiturage qui connecte conducteurs et passagers effectuant des trajets similaires. Un moteur de matching intelligent (IA) analyse itinéraires, horaires et préférences pour proposer automatiquement les correspondances les plus pertinentes, plutôt qu'une simple recherche par filtres.</p>
+                    <p><em>L'utilisateur réserve, paie et note son trajet directement sur la plateforme, avec un suivi en temps réel et une vérification d'identité pour instaurer la confiance.</em></p>
+                </div>
+                <div>
+                    <h3 style="color: #38bdf8; margin-bottom: 15px; font-size: 1.3rem;">Problématique</h3>
+                    <ul style="list-style-type: none; font-size: 0.9rem; line-height: 1.5;">
+                        <li style="margin-bottom: 10px;">• Recherche de trajet manuelle et peu optimisée</li>
+                        <li style="margin-bottom: 10px;">• Manque de confiance entre inconnus (pas de vérification fiable)</li>
+                        <li style="margin-bottom: 10px;">• Trajets sous-optimaux ne se croisant jamais faute de bon matching</li>
+                        <li style="margin-bottom: 10px;">• Coût et impact environnemental élevés du transport individuel</li>
+                        <li style="margin-bottom: 10px;">• Absence de suivi centralisé (réservation, paiement, évaluation)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="slide">
+            <h2>Principales fonctionnalités</h2>
+            <div class="grid-3">
+                <div class="card-white">
+                    <h3><span style="display:inline-block; width:14px; height:14px; background:#0d5c80; border-radius:50%;"></span> Passager</h3>
+                    <ul>
+                        <li>Recherche de trajet</li>
+                        <li>Matching intelligent (IA)</li>
+                        <li>Réservation & paiement</li>
+                        <li>Évaluation & historique</li>
+                    </ul>
+                </div>
+                <div class="card-white">
+                    <h3><span style="display:inline-block; width:14px; height:14px; background:#0e85a3; border-radius:50%;"></span> Conducteur</h3>
+                    <ul>
+                        <li>Publication de trajet</li>
+                        <li>Gestion des réservations</li>
+                        <li>Réception du paiement</li>
+                        <li>Évaluation du passager</li>
+                    </ul>
+                </div>
+                <div class="card-white">
+                    <h3><span style="display:inline-block; width:14px; height:14px; background:#1e2454; border-radius:50%;"></span> Transverse</h3>
+                    <ul>
+                        <li>Chat conducteur ↔ passager</li>
+                        <li>Notifications push/SMS</li>
+                        <li>Vérification d'identité</li>
+                        <li>Suivi en temps réel</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide">
+            <h2>Microservices et responsabilités</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Responsabilités</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>User Service</strong></td>
+                        <td>Authentification, profils, vérification d'identité</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trip Service</strong></td>
+                        <td>Publication et recherche de trajet</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Booking Service</strong></td>
+                        <td>Réservation, confirmation</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Payment Service</strong></td>
+                        <td>Paiement en ligne</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rating + Chat Service</strong></td>
+                        <td>Évaluations, messagerie</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Notification + Tracking Service</strong></td>
+                        <td>Notifications, suivi en temps réel</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Matching Service (IA)</strong></td>
+                        <td>Scoring et suggestions de trajets compatibles</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide">
+            <h2>Architecture globale proposée</h2>
+            <div class="grid-2-custom">
+                <ul style="list-style: none; font-size: 0.95rem; line-height: 1.7; color: #e2e8f0;">
+                    <li>• Architecture microservices — un service par fonctionnalité métier</li>
+                    <li>• API Gateway : point d'entrée unique, routage vers les services</li>
+                    <li>• Service Discovery : localisation dynamique des services</li>
+                    <li>• Config Server : configuration centralisée</li>
+                    <li>• Database per Service : chaque microservice a sa propre base</li>
+                    <li>• Frontend unique (Angular) consommant les API via la Gateway</li>
+                </ul>
+                <div style="background:#131836; padding:20px; border-radius:10px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                    <div style="background:#272f69; width:90%; padding:10px; text-align:center; border-radius:6px; font-weight:bold;">Frontend (Angular)</div>
+                    <div style="color:#0e85a3;">↓</div>
+                    <div style="background:#0d5c80; width:90%; padding:10px; text-align:center; border-radius:6px; font-weight:bold;">API Gateway</div>
+                    <div style="color:#0e85a3;">↓</div>
+                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; width:90%;">
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">User</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Trip</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Booking</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Payment</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:90%;">
+                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Rating/Chat</div>
+                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Notif/Track</div>
+                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Matching IA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="prevSlide()">Précédent</button>
+        <span class="slide-counter" id="slideCounter">Slide 1 sur 5</span>
+        <button class="btn" onclick="nextSlide()">Suivant</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slideCounter');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            counter.innerText = `Slide ${currentSlide + 1} sur ${slides.length}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>

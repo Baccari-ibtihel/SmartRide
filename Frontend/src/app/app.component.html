@@ -1,0 +1,64 @@
+<div class="smartride-app">
+  <!-- Header / Navigation -->
+  <header class="navbar">
+    <div class="logo">
+      <div class="logo-icon"></div>
+      <span class="logo-text">Smart<strong>Ride</strong></span>
+    </div>
+    <nav class="nav-links">
+      <button [class.active]="activeTab === 'search'" (click)="setTab('search')">Rechercher</button>
+      <button [class.active]="activeTab === 'publish'" (click)="setTab('publish')">Publier un trajet</button>
+      <button [class.active]="activeTab === 'bookings'" (click)="setTab('bookings')">Mes Réservations</button>
+      <button [class.active]="activeTab === 'chat'" (click)="setTab('chat')">Messagerie</button>
+    </nav>
+    <div class="user-profile">
+      <span class="avatar">IB</span>
+      <span class="user-name">Ibtihel Baccari</span>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="content">
+    <section class="hero-banner">
+      <h1>Plateforme de covoiturage intelligente</h1>
+      <p>Proposez ou trouvez le trajet ideal grâce au matching par IA en temps réel.</p>
+    </section>
+
+    <!-- Search / AI Matchmaker Tab -->
+    <section *ngIf="activeTab === 'search'" class="tab-content">
+      <div class="search-card">
+        <h3>🔍 Moteur de Matching IA</h3>
+        <div class="search-grid">
+          <input type="text" placeholder="Départ (ex: Ariana)" [(ngModel)]="searchQuery.origin">
+          <input type="text" placeholder="Destination (ex: Lac 2)" [(ngModel)]="searchQuery.destination">
+          <input type="date" [(ngModel)]="searchQuery.date">
+          <button class="btn-primary">Trouver les correspondances IA</button>
+        </div>
+      </div>
+
+      <div class="results-section">
+        <h3>Trajets recommandés par l'IA (Score de compatibilité)</h3>
+        <div class="cards-grid">
+          <div *ngFor="let trip of mockMatches" class="trip-card">
+            <div class="card-header">
+              <span class="driver-name">{{ trip.driver }} ⭐ {{ trip.rating }}</span>
+              <span class="match-badge">{{ trip.score }}% de compatibilité</span>
+            </div>
+            <div class="card-body">
+              <div class="route">
+                <strong>{{ trip.departureTime }}</strong> : {{ trip.origin }} ➔ {{ trip.destination }}
+              </div>
+              <div class="details">
+                <span>Places: {{ trip.seats }}</span>
+                <span class="price">{{ trip.price }}</span>
+              </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn-secondary">Réserver le trajet</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

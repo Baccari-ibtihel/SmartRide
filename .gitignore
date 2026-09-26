@@ -1,0 +1,17 @@
+# Target / Build directories
+**/target/
+**/dist/
+**/build/
+**/node_modules/
+.idea/
+*.iml
+.vscode/
+*.log
+.DS_Store
+*.tmp
+
+# Python / IA
+__pycache__/
+*.pyc
+venv/
+.env

@@ -1,0 +1,40 @@
+graph TD
+    Passenger((Passager))
+    Driver((Conducteur))
+    Admin((Administrateur))
+
+    subgraph SmartRide ["Plateforme SmartRide"]
+        UC1[Rechercher un trajet par IA]
+        UC2[Consulter les correspondances recommandées]
+        UC3[Effectuer une réservation]
+        UC4[Payer le trajet en ligne]
+        UC5[Evaluer le conducteur]
+        UC6[Chatter avec le conducteur]
+
+        UC7[Publier un trajet]
+        UC8[Gérer/Accepter les réservations]
+        UC9[Recevoir le paiement du trajet]
+        UC10[Evaluer le passager]
+
+        UC11[Vérifier l'identité des utilisateurs]
+        UC12[Suivre le véhicule en temps réel]
+        UC13[Modérer les avis et réclamations]
+    end
+
+    Passenger --> UC1
+    Passenger --> UC2
+    Passenger --> UC3
+    Passenger --> UC4
+    Passenger --> UC5
+    Passenger --> UC6
+    Passenger --> UC12
+
+    Driver --> UC7
+    Driver --> UC8
+    Driver --> UC9
+    Driver --> UC10
+    Driver --> UC6
+    Driver --> UC12
+
+    Admin --> UC11
+    Admin --> UC13

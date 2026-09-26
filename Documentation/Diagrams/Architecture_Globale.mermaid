@@ -1,0 +1,64 @@
+graph TD
+    classDef client fill:#272f69,stroke:#0e85a3,stroke-width:2px,color:#ffffff;
+    classDef gateway fill:#0d5c80,stroke:#0e85a3,stroke-width:2px,color:#ffffff;
+    classDef infra fill:#1e2454,stroke:#0e85a3,stroke-width:2px,color:#ffffff;
+    classDef service fill:#0e85a3,stroke:#ffffff,stroke-width:1px,color:#ffffff;
+    classDef db fill:#334155,stroke:#94a3b8,stroke-width:1px,color:#ffffff;
+
+    subgraph ClientLayer ["Couche Cliente"]
+        AngularApp["Frontend Client (Angular SPA)"]:::client
+    end
+
+    subgraph GatewayLayer ["Gateway & Sécurité"]
+        APIGateway["API Gateway (Spring Cloud Gateway)"]:::gateway
+    end
+
+    subgraph InfraLayer ["Infrastructure Spring Cloud"]
+        Eureka["Service Discovery (Eureka Server)"]:::infra
+        ConfigServer["Config Server (Spring Cloud Config)"]:::infra
+    end
+
+    subgraph MicroservicesLayer ["Microservices Métier"]
+        UserService["User Service (Auth & Profils)"]:::service
+        TripService["Trip Service (Trajets)"]:::service
+        BookingService["Booking Service (Réservations)"]:::service
+        PaymentService["Payment Service (Paiements)"]:::service
+        RatingChatService["Rating + Chat Service"]:::service
+        NotifTrackService["Notification + Tracking Service"]:::service
+        MatchingIAService["Matching Service (IA Engine)"]:::service
+    end
+
+    subgraph DatabaseLayer ["Database Per Service"]
+        DBUser[("PostgreSQL User DB")]:::db
+        DBTrip[("PostgreSQL Trip DB")]:::db
+        DBBooking[("PostgreSQL Booking DB")]:::db
+        DBPayment[("PostgreSQL Payment DB")]:::db
+        DBChat[("MongoDB Chat & Ratings")]:::db
+        DBRedis[("Redis Cache & GPS")]:::db
+    end
+
+    AngularApp -->|HTTPS / REST| APIGateway
+    APIGateway -->|Route JWT Auth| UserService
+    APIGateway -->|Route Trajets| TripService
+    APIGateway -->|Route Réservation| BookingService
+    APIGateway -->|Route Paiement| PaymentService
+    APIGateway -->|Route Messagerie| RatingChatService
+    APIGateway -->|Route WebSockets| NotifTrackService
+    APIGateway -->|Route Matching IA| MatchingIAService
+
+    UserService -.->|Register/Discover| Eureka
+    TripService -.->|Register/Discover| Eureka
+    BookingService -.->|Register/Discover| Eureka
+    PaymentService -.->|Register/Discover| Eureka
+    RatingChatService -.->|Register/Discover| Eureka
+    NotifTrackService -.->|Register/Discover| Eureka
+    MatchingIAService -.->|Register/Discover| Eureka
+
+    UserService --> DBUser
+    TripService --> DBTrip
+    BookingService --> DBBooking
+    PaymentService --> DBPayment
+    RatingChatService --> DBChat
+    NotifTrackService --> DBRedis
+
+    MatchingIAService -->|Lecture Trajets| TripService
