@@ -6,20 +6,14 @@ graph TD
     Frontend["Frontend (Angular)"]:::frontend
     Gateway["API Gateway"]:::gateway
 
-    subgraph Row1 [" "]
-        direction LR
-        User["User"]:::service
-        Trip["Trip"]:::service
-        Booking["Booking"]:::service
-        Payment["Payment"]:::service
-    end
+    User["User"]:::service
+    Trip["Trip"]:::service
+    Booking["Booking"]:::service
+    Payment["Payment"]:::service
 
-    subgraph Row2 [" "]
-        direction LR
-        RatingChat["Rating/Chat"]:::service
-        NotifTrack["Notif/Track"]:::service
-        MatchingIA["Matching (IA)"]:::service
-    end
+    RatingChat["Rating/Chat"]:::service
+    NotifTrack["Notif/Track"]:::service
+    MatchingIA["Matching (IA)"]:::service
 
     Frontend --> Gateway
 
