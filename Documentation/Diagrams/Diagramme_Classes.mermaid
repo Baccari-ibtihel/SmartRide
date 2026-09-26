@@ -1,0 +1,63 @@
+classDiagram
+    direction TB
+
+    class User {
+        +Long id
+        +String firstname
+        +String lastname
+        +String email
+        +String phone
+    }
+
+    class Address {
+        +Long id
+        +String street
+        +String houseNumber
+        +String zipCode
+        +String city
+    }
+
+    class Booking {
+        +Long id
+        +Date bookingDate
+        +String status
+        +Integer numberOfSeats
+    }
+
+    class Trip {
+        +Long id
+        +String origin
+        +String destination
+        +Integer availableSeats
+        +Date date
+        +Double price
+    }
+
+    class Vehicle {
+        +Long id
+        +String brand
+        +String model
+        +String licensePlate
+    }
+
+    class Payment {
+        +Long id
+        +String reference
+        +Double amount
+        +String status
+    }
+
+    class Notification {
+        +Long id
+        +String sender
+        +String recipient
+        +String content
+        +Date date
+    }
+
+    User "1" -- "0..*" Address : has
+    User "1" -- "0..*" Booking : makes
+    Trip "1" -- "0..*" Booking : contains
+    Vehicle "1" -- "0..*" Trip : assigned_to
+    Booking "1" -- "1" Payment : requires
+    Booking "1" -- "0..*" Notification : triggers
