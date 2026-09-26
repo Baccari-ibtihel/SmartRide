@@ -39,7 +39,6 @@ SmartRide/
 │   │   ├── Presentation_Seance4.md
 │   │   └── Presentation_Seance4.html
 │   └── Diagrams/
-│       ├── Architecture_Globale.mermaid
 │       ├── Diagramme_Cas_Utilisation.mermaid
 │       ├── Diagramme_Sequence_Reservation.mermaid
 │       └── Diagramme_Classes.mermaid
@@ -52,12 +51,12 @@ SmartRide/
 
 SmartRide adopte une **architecture Microservices Polyglotte avec Database Per Service** :
 
-| Service | Technologie | Rôle & Responsabilités |
-| :--- | :--- | :--- |
-| **User Service** | **Spring Boot (Java)** | Authentification, profils, vérification d'identité |
-| **Trip Service** | **Go** | Publication et recherche de trajet |
-| **Booking Service** | **Node.js + Express** | Réservation, confirmation |
-| **Payment Service** | **Python + FastAPI** | Paiement en ligne |
-| **Rating/Chat Service** | **NestJS (TypeScript)** | Évaluations, messagerie |
-| **Notification/Tracking Service** | **Symfony (PHP)** | Notifications, suivi en temps réel |
-| **Matching Service (IA)** | **Python + FastAPI** | Scoring et suggestions de trajets compatibles |
+| Service | Technologie | Base de Données | Rôle & Responsabilités |
+| :--- | :--- | :--- | :--- |
+| **User Service** | **Spring Boot (Java)** | **MySQL / phpMyAdmin (XAMPP)** | Authentification, profils, vérification d'identité |
+| **Trip Service** | **Go** | - | Publication et recherche de trajet |
+| **Booking Service** | **Node.js + Express** | **PostgreSQL** | Réservation, confirmation |
+| **Payment Service** | **Python + FastAPI** | - | Paiement en ligne |
+| **Rating/Chat Service** | **NestJS (TypeScript)** | - | Évaluations, messagerie |
+| **Notification/Tracking Service** | **Symfony (PHP)** | - | Notifications, suivi en temps réel |
+| **Matching Service (IA)** | **Python + FastAPI** | - | Scoring et suggestions de trajets compatibles |

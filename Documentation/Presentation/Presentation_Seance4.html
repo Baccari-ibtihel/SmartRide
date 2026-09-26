@@ -330,36 +330,44 @@
                     <tr>
                         <th>Service</th>
                         <th>Technologie</th>
+                        <th>Base de Données</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td><strong>User Service</strong></td>
                         <td>Spring Boot (Java)</td>
+                        <td><strong>MySQL / phpMyAdmin (XAMPP)</strong></td>
                     </tr>
                     <tr>
                         <td><strong>Trip Service</strong></td>
                         <td>Go</td>
+                        <td>-</td>
                     </tr>
                     <tr>
                         <td><strong>Booking Service</strong></td>
                         <td>Node.js + Express</td>
+                        <td><strong>PostgreSQL</strong></td>
                     </tr>
                     <tr>
                         <td><strong>Payment Service</strong></td>
                         <td>Python + FastAPI</td>
+                        <td>-</td>
                     </tr>
                     <tr>
                         <td><strong>Rating/Chat Service</strong></td>
                         <td>NestJS (TypeScript)</td>
+                        <td>-</td>
                     </tr>
                     <tr>
                         <td><strong>Notification/Tracking Service</strong></td>
                         <td>Symfony (PHP)</td>
+                        <td>-</td>
                     </tr>
                     <tr>
                         <td><strong>Matching Service (IA)</strong></td>
                         <td>Python + FastAPI</td>
+                        <td>-</td>
                     </tr>
                 </tbody>
             </table>
@@ -374,7 +382,7 @@
                     <li>• API Gateway : point d'entrée unique, routage vers les services</li>
                     <li>• Service Discovery : localisation dynamique des services</li>
                     <li>• Config Server : configuration centralisée</li>
-                    <li>• Database per Service : chaque microservice a sa propre base</li>
+                    <li>• Database per Service : MySQL (XAMPP) pour User, PostgreSQL pour Booking</li>
                     <li>• Frontend unique (Angular) consommant les API via la Gateway</li>
                 </ul>
                 <div style="background:#131836; padding:20px; border-radius:10px; display:flex; flex-direction:column; align-items:center; gap:8px;">
@@ -383,9 +391,9 @@
                     <div style="background:#0d5c80; width:90%; padding:10px; text-align:center; border-radius:6px; font-weight:bold;">API Gateway</div>
                     <div style="color:#0e85a3;">↓</div>
                     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; width:90%;">
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">User (Java)</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">User (Java / MySQL)</div>
                         <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Trip (Go)</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Booking (Node)</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Booking (Node / Postgres)</div>
                         <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Payment (Python)</div>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:90%;">
