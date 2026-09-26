@@ -1,40 +1,27 @@
-graph TD
-    Passenger((Passager))
-    Driver((Conducteur))
-    Admin((Administrateur))
+flowchart LR
+    User["👤 User / Passenger"]
+    
+    subgraph SmartRide ["SmartRide System"]
+        direction TB
+        UC1("( Search & View Trips )")
+        UC2("( Book Trip )")
+        UC3("( Complete Payment )")
+        UC4("( Log In )")
 
-    subgraph SmartRide ["Plateforme SmartRide"]
-        UC1[Rechercher un trajet par IA]
-        UC2[Consulter les correspondances recommandées]
-        UC3[Effectuer une réservation]
-        UC4[Payer le trajet en ligne]
-        UC5[Evaluer le conducteur]
-        UC6[Chatter avec le conducteur]
-
-        UC7[Publier un trajet]
-        UC8[Gérer/Accepter les réservations]
-        UC9[Recevoir le paiement du trajet]
-        UC10[Evaluer le passager]
-
-        UC11[Vérifier l'identité des utilisateurs]
-        UC12[Suivre le véhicule en temps réel]
-        UC13[Modérer les avis et réclamations]
+        UC2 -. "<<include>>" .-> UC1
+        UC2 -. "<<include>>" .-> UC3
     end
 
-    Passenger --> UC1
-    Passenger --> UC2
-    Passenger --> UC3
-    Passenger --> UC4
-    Passenger --> UC5
-    Passenger --> UC6
-    Passenger --> UC12
+    Auth["⚙️ <<service>>\nAuthentication"]
+    IdP["🔑 Identity Provider"]
+    PaymentServ["💳 Payment Service"]
+    AIMatching["🤖 AI Matching Engine"]
 
-    Driver --> UC7
-    Driver --> UC8
-    Driver --> UC9
-    Driver --> UC10
-    Driver --> UC6
-    Driver --> UC12
+    User --- UC1
+    User --- UC2
+    User --- UC4
 
-    Admin --> UC11
-    Admin --> UC13
+    UC1 --- AIMatching
+    UC4 --- Auth
+    UC4 --- IdP
+    UC3 --- PaymentServ
