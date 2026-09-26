@@ -7,10 +7,10 @@
 **Sous-titre :** Plateforme de covoiturage intelligente avec matching par IA  
 **Cadre :** Séance 4 — Présentation synthétique du projet  
 **Équipe :** 
-- Baccari Ibtihel (Lead Frontend & Matching IA)
-- Membre 2 (Lead Backend Microservices & DevOps)
-- Membre 3 (Développeur Microservices & Database)
-- Membre 4 (Développeur Fullstack & Assurance Qualité)
+- Baccari Ibtihel (`ibtihel.baccari@esprit.tn`) — Lead Frontend & Matching IA
+- Ghofran Hajjej (`ghofran.Hajjej@esprit.tn`) — Développeuse Fullstack & Microservices
+- Membre 3 — Développeur Microservices & Database
+- Membre 4 — Développeur Fullstack & Assurance Qualité
 
 ---
 
@@ -95,33 +95,22 @@ L'utilisateur réserve, paie et note son trajet directement sur la plateforme, a
 
 ## Slide 7 : Répartition des Tâches dans l'Équipe
 
-| Membre | Rôle principal | Microservices / Modules sous responsabilité |
-| :--- | :--- | :--- |
-| **Baccari Ibtihel** | Lead Frontend & Matching IA | Interface Angular, Matching Service (Python + FastAPI), Intégration Gateway. |
-| **Membre 2** | Lead Backend & DevOps | Infrastructure Spring Cloud (Eureka, Config, Gateway), User Service (Spring Boot), Docker. |
-| **Membre 3** | Développeur Microservices | Trip Service (Go), Booking Service (Node.js + Express), Schémas PostgreSQL. |
-| **Membre 4** | Développeur Fullstack & QA | Payment Service (FastAPI), Rating/Chat (NestJS), Notif/Tracking (Symfony), Tests. |
+| Membre | Email | Rôle principal | Microservices / Modules sous responsabilité |
+| :--- | :--- | :--- | :--- |
+| **Baccari Ibtihel** | `ibtihel.baccari@esprit.tn` | Lead Frontend & Matching IA | Interface Angular, Matching Service (Python + FastAPI), Intégration Gateway. |
+| **Ghofran Hajjej** | `ghofran.Hajjej@esprit.tn` | Fullstack & Microservices | Trip Service (Go), Booking Service (Node.js + Express), Schémas PostgreSQL. |
+| **Membre 3** | — | Lead Backend & DevOps | Infrastructure Spring Cloud (Eureka, Config, Gateway), User Service (Spring Boot), Docker. |
+| **Membre 4** | — | Fullstack & QA | Payment Service (FastAPI), Rating/Chat (NestJS), Notif/Tracking (Symfony), Tests. |
 
 ---
 
-## Slide 8 : Organisation Git & Outil de Gestion du Projet
-
-### Organisation Git (GitFlow)
-- `main` : Branche principale de production, code stable et déployable.
-- Branches de fonctionnalités : `feature/<nom-fonctionnalite>` et correctifs `fix/<nom-bug>`.
-
-### Outil de Gestion de Projet
-- **GitHub Projects / Trello** : Tableau Kanban pour le suivi des User Stories, backlog et sprints.
-
----
-
-## Slide 9 : Planning Prévisionnel & Principaux Risques
+## Slide 8 : Planning Prévisionnel & Principaux Risques
 
 ### Planning Prévisionnel (Sprints)
 - **Sprint 1 (Semaines 1-2) :** Architecture microservices polyglotte, modèles de données, dépôt Git.
 - **Sprint 2 (Semaines 3-4) :** Microservices User (Spring Boot), Trip (Go), Booking (Node.js) et Angular.
 - **Sprint 3 (Semaines 5-6) :** Moteur d'IA (FastAPI), Payment (FastAPI), Rating/Chat (NestJS), Notif/Tracking (Symfony).
-- **Sprint 4 (Semaines 7-8) :** Integration globale, tests E2E, déploiement Docker.
+- **Sprint 4 (Semaines 7-8) :** Intégration globale, tests E2E, déploiement Docker.
 
 ### Principaux Risques et Mitigations
 1. **Gestion d'une stack polyglotte :**  
