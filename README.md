@@ -1,8 +1,8 @@
 # SmartRide — Plateforme de Covoiturage Intelligente avec Matching par IA
 
 ![SmartRide Banner](https://img.shields.io/badge/SmartRide-Séance%204-1e2454?style=for-the-badge&logo=angular&logoColor=white)
-![Microservices Architecture](https://img.shields.io/badge/Architecture-Microservices-0d5c80?style=for-the-badge&logo=spring&logoColor=white)
-![AI Engine](https://img.shields.io/badge/IA%20Matching-FastAPI%20%2B%20Python-0e85a3?style=for-the-badge&logo=python&logoColor=white)
+![Microservices Polyglottes](https://img.shields.io/badge/Architecture-Microservices%20Polyglottes-0d5c80?style=for-the-badge&logo=spring&logoColor=white)
+![IA Matching](https://img.shields.io/badge/IA%20Matching-FastAPI%20%2B%20Python-0e85a3?style=for-the-badge&logo=python&logoColor=white)
 
 ---
 
@@ -18,17 +18,17 @@ Conformément aux exigences du projet, le dépôt est structuré comme suit :
 
 ```
 SmartRide/
-├── Backend/                            # Regroupement des microservices & infrastructure
+├── Backend/                            # Regroupement des microservices polyglottes & infrastructure
 │   ├── api-gateway/                    # Spring Cloud Gateway (Port 8080)
 │   ├── discovery-server/               # Eureka Service Discovery (Port 8761)
 │   ├── config-server/                  # Spring Cloud Config Server (Port 8888)
-│   ├── user-service/                   # Authentification JWT, Profils, Identités (Port 8081)
-│   ├── trip-service/                   # Publication & Recherche de trajets (Port 8082)
-│   ├── booking-service/                # Gestion des réservations (Port 8083)
-│   ├── payment-service/                # Gestion des paiements en ligne (Port 8084)
-│   ├── rating-chat-service/            # Évaluations & Messagerie instantanée (Port 8085)
-│   ├── notification-tracking-service/   # Tracking GPS temps réel & Notifications (Port 8086)
-│   ├── matching-ia-service/            # Moteur d'IA & Scoring de correspondances (Port 8087)
+│   ├── user-service/                   # Spring Boot (Java) - Auth JWT & Profils (Port 8081)
+│   ├── trip-service/                   # Go - Trajets haute performance (Port 8082)
+│   ├── booking-service/                # Node.js + Express - Réservations (Port 8083)
+│   ├── payment-service/                # Python + FastAPI - Paiement & Facturation (Port 8084)
+│   ├── rating-chat-service/            # NestJS (TypeScript) - Messagerie & Notes (Port 8085)
+│   ├── notification-tracking-service/   # Symfony (PHP) - Tracking GPS & Notifications (Port 8086)
+│   ├── matching-ia-service/            # Python + FastAPI - Moteur de Matching IA (Port 8087)
 │   ├── docker-compose.yml              # Orchestration complète des containers & bases
 │   └── README.md
 ├── Frontend/                           # Application cliente Angular 17+
@@ -42,40 +42,40 @@ SmartRide/
 │   └── Diagrams/
 │       ├── Architecture_Globale.mermaid
 │       ├── Diagramme_Cas_Utilisation.mermaid
-│       └── Diagramme_Sequence_Reservation.mermaid
+│       ├── Diagramme_Sequence_Reservation.mermaid
+│       └── Diagramme_Classes.mermaid
 └── README.md                           # Documentation générale & Fiche de rendu Blackboard
 ```
 
 ---
 
-## 🛠️ Architecture Technique & Microservices
+## 🛠️ Architecture Technique & Microservices Polyglottes
 
-SmartRide adopte une **architecture Microservices réparties avec Database Per Service** :
+SmartRide adopte une **architecture Microservices Polyglotte avec Database Per Service** :
 
-1. **Frontend (Angular SPA) :** Interface utilisateur fluide, responsive et dynamique.
-2. **API Gateway (Spring Cloud Gateway) :** Point d'entrée unique sécurisé par JWT et routage dynamique.
-3. **Service Discovery (Eureka) & Config Server :** Gestion dynamique du réseau et des configurations.
-4. **Bases de Données Découplées :** PostgreSQL (données relationnelles), MongoDB (chat & notes), Redis (cache & GPS).
-5. **Moteur d'IA (FastAPI / Python) :** Calcul de correspondance géographique et temporelle avec scoring.
+| Service | Technologie | Rôle & Responsabilités |
+| :--- | :--- | :--- |
+| **User Service** | **Spring Boot (Java)** | Authentification, profils, vérification d'identité |
+| **Trip Service** | **Go** | Publication et recherche de trajet |
+| **Booking Service** | **Node.js + Express** | Réservation, confirmation |
+| **Payment Service** | **Python + FastAPI** | Paiement en ligne |
+| **Rating/Chat Service** | **NestJS (TypeScript)** | Évaluations, messagerie |
+| **Notification/Tracking Service** | **Symfony (PHP)** | Notifications, suivi en temps réel |
+| **Matching Service (IA)** | **Python + FastAPI** | Scoring et suggestions de trajets compatibles |
 
 ---
 
 ## 🌿 Organisation Git & Workflow
 
-Le développement s'appuie sur le workflow **GitFlow** :
-- `main` : Branche principale stable et de production.
-- `develop` : Branche d'intégration globale.
-- `feature/*` : Branches de fonctionnalités isolées.
-- `fix/*` : Branches de correctifs d'anomalies.
+Le développement s'appuie sur le workflow Git :
+- `main` : Branche principale de production stable.
+- Branches de fonctionnalités isolées (`feature/*`).
 
 **Compte GitHub Officiel :** [Baccari-ibtihel](https://github.com/Baccari-ibtihel)
 
 ---
 
 ## 📝 Fiche de Rendu pour Blackboard (Séance 4)
-
-> [!IMPORTANT]
-> **Veuillez copier-coller les informations ci-dessous directement dans le formulaire de rendu Blackboard :**
 
 - **Lien du dépôt Git public :** [https://github.com/Baccari-ibtihel/SmartRide](https://github.com/Baccari-ibtihel/SmartRide)
 - **Nom du projet :** `SmartRide — Plateforme de covoiturage intelligente avec matching par IA`

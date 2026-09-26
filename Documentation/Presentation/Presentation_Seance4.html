@@ -189,19 +189,19 @@
             color: var(--text-dark);
             border-radius: 8px;
             overflow: hidden;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         th {
             background: #f1f5f9;
             color: var(--bg-color);
-            padding: 12px 15px;
+            padding: 14px 18px;
             text-align: left;
             font-weight: bold;
         }
 
         td {
-            padding: 12px 15px;
+            padding: 12px 18px;
             border-bottom: 1px solid #e2e8f0;
         }
 
@@ -317,37 +317,37 @@
                 <thead>
                     <tr>
                         <th>Service</th>
-                        <th>Responsabilités</th>
+                        <th>Technologie</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td><strong>User Service</strong></td>
-                        <td>Authentification, profils, vérification d'identité</td>
+                        <td>Spring Boot (Java)</td>
                     </tr>
                     <tr>
                         <td><strong>Trip Service</strong></td>
-                        <td>Publication et recherche de trajet</td>
+                        <td>Go</td>
                     </tr>
                     <tr>
                         <td><strong>Booking Service</strong></td>
-                        <td>Réservation, confirmation</td>
+                        <td>Node.js + Express</td>
                     </tr>
                     <tr>
                         <td><strong>Payment Service</strong></td>
-                        <td>Paiement en ligne</td>
+                        <td>Python + FastAPI</td>
                     </tr>
                     <tr>
-                        <td><strong>Rating + Chat Service</strong></td>
-                        <td>Évaluations, messagerie</td>
+                        <td><strong>Rating/Chat Service</strong></td>
+                        <td>NestJS (TypeScript)</td>
                     </tr>
                     <tr>
-                        <td><strong>Notification + Tracking Service</strong></td>
-                        <td>Notifications, suivi en temps réel</td>
+                        <td><strong>Notification/Tracking Service</strong></td>
+                        <td>Symfony (PHP)</td>
                     </tr>
                     <tr>
                         <td><strong>Matching Service (IA)</strong></td>
-                        <td>Scoring et suggestions de trajets compatibles</td>
+                        <td>Python + FastAPI</td>
                     </tr>
                 </tbody>
             </table>
@@ -358,7 +358,7 @@
             <h2>Architecture globale proposée</h2>
             <div class="grid-2-custom">
                 <ul style="list-style: none; font-size: 0.95rem; line-height: 1.7; color: #e2e8f0;">
-                    <li>• Architecture microservices — un service par fonctionnalité métier</li>
+                    <li>• Architecture microservices polyglotte — un service par fonctionnalité métier</li>
                     <li>• API Gateway : point d'entrée unique, routage vers les services</li>
                     <li>• Service Discovery : localisation dynamique des services</li>
                     <li>• Config Server : configuration centralisée</li>
@@ -371,15 +371,15 @@
                     <div style="background:#0d5c80; width:90%; padding:10px; text-align:center; border-radius:6px; font-weight:bold;">API Gateway</div>
                     <div style="color:#0e85a3;">↓</div>
                     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; width:90%;">
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">User</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Trip</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Booking</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Payment</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">User (Java)</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Trip (Go)</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Booking (Node)</div>
+                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Payment (Python)</div>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:90%;">
-                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Rating/Chat</div>
-                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Notif/Track</div>
-                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Matching IA</div>
+                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Rating/Chat (Nest)</div>
+                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Notif/Track (PHP)</div>
+                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Matching IA (FastAPI)</div>
                     </div>
                 </div>
             </div>

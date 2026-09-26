@@ -1,21 +1,21 @@
 # SmartRide - Microservices Backend Architecture
 
-Ce dossier regroupe l'ensemble des microservices et serveurs d'infrastructure composant l'architecture Backend de la plateforme **SmartRide**.
+Ce dossier regroupe l'ensemble des microservices et serveurs d'infrastructure composant l'architecture Backend polyglotte de la plateforme **SmartRide**.
 
-## Structure des Microservices
+## Structure & Technologies des Microservices
 
-| Service / Composant | Technologie | Port | Description & Responsabilités |
+| Service / Composant | Technologie Choisie | Port | Description & Responsabilités |
 | :--- | :--- | :--- | :--- |
-| **`api-gateway`** | Spring Cloud Gateway | `8080` | Point d'entrée unique, routage dynamique, filtrage des requêtes & sécurité JWT. |
+| **`api-gateway`** | Spring Cloud Gateway | `8080` | Point d'entrée unique, routage dynamique & filtrage JWT. |
 | **`discovery-server`** | Spring Cloud Eureka | `8761` | Service Discovery pour l'enregistrement et la découverte dynamique des microservices. |
 | **`config-server`** | Spring Cloud Config | `8888` | Gestion centralisée des configurations multi-environnements. |
-| **`user-service`** | Spring Boot + PostgreSQL | `8081` | Authentification (JWT), gestion des profils (Passager/Conducteur) et vérification d'identité. |
-| **`trip-service`** | Spring Boot + PostgreSQL | `8082` | Publication, modification, annulation et recherche filtrée des trajets de covoiturage. |
-| **`booking-service`** | Spring Boot + PostgreSQL | `8083` | Gestion du cycle de vie des réservations, confirmation et gestion des places disponibles. |
-| **`payment-service`** | Spring Boot + PostgreSQL | `8084` | Traitement des paiements sécurisés en ligne, facturation et transferts conducteurs. |
-| **`rating-chat-service`** | Spring Boot + MongoDB | `8085` | Messagerie instantanée en temps réel entre passager/conducteur et système d'avis/notes. |
-| **`notification-tracking-service`** | Spring Boot + Redis | `8086` | Notifications push/email/SMS et suivi GPS du trajet en temps réel. |
-| **`matching-ia-service`** | Python / FastAPI / Spring Boot | `8087` | Moteur d'IA & algorithme de scoring pour matcher les trajets compatibles selon l'itinéraire et les horaires. |
+| **`user-service`** | **Spring Boot (Java)** | `8081` | Authentification (JWT), profils (Passager/Conducteur) et vérification d'identité. |
+| **`trip-service`** | **Go (Golang)** | `8082` | Publication et recherche haute performance des trajets de covoiturage. |
+| **`booking-service`** | **Node.js + Express** | `8083` | Gestion du cycle de vie des réservations et validation des places. |
+| **`payment-service`** | **Python + FastAPI** | `8084` | Traitement des paiements sécurisés en ligne et facturation. |
+| **`rating-chat-service`** | **NestJS (TypeScript)** | `8085` | Messagerie instantanée en temps réel (WebSockets) et système d'avis/notes. |
+| **`notification-tracking-service`** | **Symfony (PHP)** | `8086` | Envoi de notifications (push/email) et suivi GPS temps réel. |
+| **`matching-ia-service`** | **Python + FastAPI** | `8087` | Moteur d'IA & algorithme de scoring pour matcher les trajets compatibles. |
 
 ## Lancement local avec Docker Compose
 

@@ -54,21 +54,21 @@ L'utilisateur réserve, paie et note son trajet directement sur la plateforme, a
 
 ## Slide 4 : Microservices et Responsabilités
 
-| Microservice | Responsabilités Principales |
-| :--- | :--- |
-| **User Service** | Authentification JWT, gestion des profils, vérification des pièces d'identité et rôles. |
-| **Trip Service** | Publication, mise à jour, suppression et recherche de trajets. |
-| **Booking Service** | Gestion du cycle de vie des réservations et validation des places. |
-| **Payment Service** | Gestion des paiements en ligne, portefeuilles virtuels et facturation. |
-| **Rating + Chat Service** | Module d'évaluation des utilisateurs et messagerie instantanée. |
-| **Notification + Tracking Service** | Notifications en temps réel et suivi cartographique GPS. |
-| **Matching Service (IA)** | Algorithme de scoring et prédiction des trajets compatibles. |
+| Microservice | Technologie Choisie | Responsabilités Principales |
+| :--- | :--- | :--- |
+| **User Service** | **Spring Boot (Java)** | Authentification, profils, vérification d'identité |
+| **Trip Service** | **Go** | Publication et recherche de trajet haute performance |
+| **Booking Service** | **Node.js + Express** | Réservation, confirmation, verrouillage de sièges |
+| **Payment Service** | **Python + FastAPI** | Traitement des paiements en ligne et facturation |
+| **Rating/Chat Service** | **NestJS (TypeScript)** | Messagerie instantanée en temps réel et évaluations |
+| **Notification/Tracking Service** | **Symfony (PHP)** | Envoi de notifications push/SMS et suivi GPS temps réel |
+| **Matching Service (IA)** | **Python + FastAPI** | Algorithme de scoring et prédiction de trajets compatibles |
 
 ---
 
 ## Slide 5 : Architecture Globale Proposée
 
-- **Architecture Microservices :** Découpage modulaire avec un service par fonctionnalité métier.
+- **Architecture Microservices Polyglotte :** Découpage modulaire orienté domaines métier avec les meilleures technologies adaptées à chaque besoin.
 - **API Gateway (Spring Cloud Gateway) :** Point d'entrée unique sécurisé avec routage dynamique et filtrage.
 - **Service Discovery (Eureka Server) :** Enregistrement et localisation dynamique des instances microservices.
 - **Config Server (Spring Cloud Config) :** Centralisation et versionnement des configurations multi-environnements.
@@ -79,11 +79,17 @@ L'utilisateur réserve, paie et note son trajet directement sur la plateforme, a
 
 ## Slide 6 : Technologies Choisies
 
-- **Frontend :** Angular 17, HTML5, Vanilla CSS / SCSS, RxJS, Leaflet / Google Maps API.
-- **Backend :** Java 17, Spring Boot 3, Spring Cloud Gateway, Eureka Server, Spring Data JPA.
-- **IA & Intelligence :** Python 3.11, FastAPI, Scikit-learn, NetworkX (graphe d'itinéraires).
-- **Bases de données :** PostgreSQL (données relationnelles), MongoDB (chat & logs), Redis (cache & tracking temps réel).
-- **DevOps & CI/CD :** Docker, Docker Compose, Git, GitHub Actions.
+- **Frontend :** Angular 17, HTML5, Vanilla CSS / SCSS, RxJS.
+- **Microservices Backend :**
+  - **User Service :** Spring Boot (Java 17)
+  - **Trip Service :** Go (Golang 1.22)
+  - **Booking Service :** Node.js + Express
+  - **Payment Service :** Python + FastAPI
+  - **Rating/Chat Service :** NestJS (TypeScript)
+  - **Notification/Tracking Service :** Symfony (PHP 8.2)
+  - **Matching Service (IA) :** Python + FastAPI
+- **Infrastructure & Cloud :** Spring Cloud Gateway, Eureka Server, Docker, Docker Compose.
+- **Bases de données :** PostgreSQL, MongoDB, Redis.
 
 ---
 
@@ -91,39 +97,34 @@ L'utilisateur réserve, paie et note son trajet directement sur la plateforme, a
 
 | Membre | Rôle principal | Microservices / Modules sous responsabilité |
 | :--- | :--- | :--- |
-| **Baccari Ibtihel** | Lead Frontend & Matching IA | Interface Angular, UI/UX, Matching Service (IA), Intégration Gateway. |
-| **Membre 2** | Lead Backend & DevOps | Infrastructure Spring Cloud (Eureka, Config, Gateway), User Service, CI/CD Docker. |
-| **Membre 3** | Développeur Microservices | Trip Service, Booking Service, Schémas PostgreSQL & persistance. |
-| **Membre 4** | Développeur Fullstack & QA | Payment Service, Rating + Chat Service, Notification & Tracking Service, Tests. |
+| **Baccari Ibtihel** | Lead Frontend & Matching IA | Interface Angular, Matching Service (Python + FastAPI), Intégration Gateway. |
+| **Membre 2** | Lead Backend & DevOps | Infrastructure Spring Cloud (Eureka, Config, Gateway), User Service (Spring Boot), Docker. |
+| **Membre 3** | Développeur Microservices | Trip Service (Go), Booking Service (Node.js + Express), Schémas PostgreSQL. |
+| **Membre 4** | Développeur Fullstack & QA | Payment Service (FastAPI), Rating/Chat (NestJS), Notif/Tracking (Symfony), Tests. |
 
 ---
 
 ## Slide 8 : Organisation Git & Outil de Gestion du Projet
 
 ### Organisation Git (GitFlow)
-- `main` : Branche de production, code stable et déployable.
-- `develop` : Branche d'intégration principale des nouvelles fonctionnalités.
-- `feature/<nom-fonctionnalite>` : Branches isolées pour le développement des fonctionnalités.
-- `fix/<nom-bug>` : Branches dédiées à la résolution des anomalies.
+- `main` : Branche principale de production, code stable et déployable.
+- Branches de fonctionnalités : `feature/<nom-fonctionnalite>` et correctifs `fix/<nom-bug>`.
 
 ### Outil de Gestion de Projet
-- **GitHub Projects / Trello** : Tableau Kanban pour le suivi des User Stories, backlog, tâches en cours et sprints.
-- **Reunions d'équipe :** Stand-up hebdomadaires et revues de code systématiques (Pull Requests obligatoires avec au moins 1 approbation).
+- **GitHub Projects / Trello** : Tableau Kanban pour le suivi des User Stories, backlog et sprints.
 
 ---
 
 ## Slide 9 : Planning Prévisionnel & Principaux Risques
 
 ### Planning Prévisionnel (Sprints)
-- **Sprint 1 (Semaines 1-2) :** Conception de l'architecture, modèles de données, initialisation du dépôt Git et des serveurs Spring Cloud.
-- **Sprint 2 (Semaines 3-4) :** Développement des microservices fondamentaux (User, Trip, Booking) et de l'interface Angular de base.
-- **Sprint 3 (Semaines 5-6) :** Implémentation du moteur d'IA (Matching Service), du module de Payment et de Rating/Chat.
-- **Sprint 4 (Semaines 7-8) :** Intégration globale, suivi GPS temps réel, tests d'endurance, documentation finale et déploiement Docker.
+- **Sprint 1 (Semaines 1-2) :** Architecture microservices polyglotte, modèles de données, dépôt Git.
+- **Sprint 2 (Semaines 3-4) :** Microservices User (Spring Boot), Trip (Go), Booking (Node.js) et Angular.
+- **Sprint 3 (Semaines 5-6) :** Moteur d'IA (FastAPI), Payment (FastAPI), Rating/Chat (NestJS), Notif/Tracking (Symfony).
+- **Sprint 4 (Semaines 7-8) :** Integration globale, tests E2E, déploiement Docker.
 
 ### Principaux Risques et Mitigations
-1. **Temps de calcul de l'algorithme d'IA :**  
-   *Mitigation :* Mise en cache des calculs d'itinéraires fréquents avec Redis.
-2. **Complexité du suivi GPS en temps réel :**  
-   *Mitigation :* Utilisation de WebSockets légers et throttling des mises à jour de position.
-3. **Sécurité des données de paiement et identités :**  
-   *Mitigation :* Tokenisation JWT, HTTPS strict et pas de stockage direct d'identifiants bancaires.
+1. **Gestion d'une stack polyglotte :**  
+   *Mitigation :* Standardisation de la conteneurisation Docker pour chaque microservice.
+2. **Temps de calcul du Matching IA :**  
+   *Mitigation :* Traitement asynchrone et mise en cache Redis des requêtes fréquentes.
