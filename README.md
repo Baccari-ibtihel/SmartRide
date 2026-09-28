@@ -53,10 +53,10 @@ SmartRide adopte une **architecture Microservices Polyglotte avec Database Per S
 
 | Service | Technologie | Base de Données | Rôle & Responsabilités |
 | :--- | :--- | :--- | :--- |
-| **User Service** | **Spring Boot (Java)** | **MySQL / phpMyAdmin (XAMPP)** | Authentification, profils, vérification d'identité |
-| **Trip Service** | **Go** | - | Publication et recherche de trajet |
+| **User Service** | **Spring Boot (Java)** | **MySQL** | Authentification, profils, vérification d'identité |
+| **Trip Service** | **Go** | **PostgreSQL** | Publication et recherche de trajet |
 | **Booking Service** | **Node.js + Express** | **PostgreSQL** | Réservation, confirmation |
-| **Payment Service** | **Python + FastAPI** | - | Paiement en ligne |
-| **Rating/Chat Service** | **NestJS (TypeScript)** | - | Évaluations, messagerie |
-| **Notification/Tracking Service** | **Symfony (PHP)** | - | Notifications, suivi en temps réel |
-| **Matching Service (IA)** | **Python + FastAPI** | - | Scoring et suggestions de trajets compatibles |
+| **Payment Service** | **Python + FastAPI** | **MongoDB** | Paiement en ligne |
+| **Rating/Chat Service** | **NestJS (TypeScript)** | **MongoDB** | Évaluations, messagerie |
+| **Notification/Tracking Service** | **Symfony (PHP)** | **PostgreSQL** | Notifications, suivi en temps réel |
+| **Matching Service (IA)** | **Python + FastAPI** | **PostgreSQL** | Scoring et suggestions de trajets compatibles |
