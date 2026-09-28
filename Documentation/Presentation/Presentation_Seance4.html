@@ -1,448 +1,1274 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartRide - Présentation Synthétique Séance 4</title>
-    <style>
-        :root {
-            --bg-color: #1e2454;
-            --card-bg: #272f69;
-            --accent-teal: #0e85a3;
-            --accent-light-blue: #eef6fc;
-            --text-color: #ffffff;
-            --text-dark: #1e2454;
-            --text-muted: #b0c4de;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartRide – Présentation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            background-color: #0b0d1e;
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f4f8;
+      color: #1a1a2e;
+    }
 
-        .slide-container {
-            width: 100%;
-            max-width: 1000px;
-            height: 580px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+    /* ─── SLIDE SHELL ─────────────────────────────────────────── */
+    .slide {
+      width: 1024px;
+      min-height: 576px;
+      margin: 0 auto 48px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    }
 
-        .slide {
-            display: none;
-            padding: 45px 55px;
-            height: 100%;
-            flex-direction: column;
-            justify-content: space-between;
-            animation: fadeIn 0.4s ease-in-out;
-        }
+    /* ─── SLIDE 1 – COVER ─────────────────────────────────────── */
+    .slide-cover {
+      background: #0d1b3e;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 64px 72px;
+    }
 
-        .slide.active {
-            display: flex;
-        }
+    .slide-cover h1 {
+      font-size: 3.2rem;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+      margin-bottom: 20px;
+      line-height: 1.1;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .slide-cover .subtitle {
+      font-size: 1.15rem;
+      font-weight: 600;
+      max-width: 380px;
+      line-height: 1.4;
+      margin-bottom: 48px;
+    }
 
-        /* Slide 1 - Title */
-        .title-slide {
-            justify-content: center;
-            position: relative;
-        }
+    .cover-team-box {
+      background: #3dd6d0;
+      border-radius: 18px;
+      padding: 22px 28px;
+      max-width: 260px;
+    }
 
-        .title-slide h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            letter-spacing: -1px;
-        }
+    .cover-team-box .team-label {
+      font-weight: 800;
+      font-size: .95rem;
+      margin-bottom: 12px;
+      color: #0d1b3e;
+    }
 
-        .title-slide p {
-            font-size: 1.3rem;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-        }
+    .cover-team-box ul {
+      list-style: none;
+    }
 
-        .team-list {
-            font-size: 0.95rem;
-            color: #e2e8f0;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
+    .cover-team-box ul li {
+      font-weight: 700;
+      font-size: .88rem;
+      color: #0d1b3e;
+      margin-bottom: 4px;
+    }
 
-        .deco-circle {
-            position: absolute;
-            top: 40px;
-            right: 50px;
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, #0e85a3 0%, #0d5c80 70%);
-            border-radius: 50%;
-            opacity: 0.85;
-        }
+    .cover-footer {
+      position: absolute;
+      bottom: 14px;
+      left: 72px;
+    }
 
-        .deco-circle-inner {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            width: 100px;
-            height: 100px;
-            background: #147291;
-            border-radius: 50%;
-        }
+    .cover-footer a {
+      color: #3dd6d0;
+      font-size: .75rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
 
-        h2 {
-            font-size: 2.2rem;
-            color: white;
-            margin-bottom: 25px;
-        }
+    .cover-illustration {
+      position: absolute;
+      right: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 380px;
+      height: 340px;
+    }
 
-        /* Cards Layout */
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
+    /* ─── SLIDE BASE (light slides) ──────────────────────────── */
+    .slide-light {
+      background: #f0f4f8;
+      padding: 52px 72px;
+    }
 
-        .card-white {
-            background: var(--accent-light-blue);
-            color: var(--text-dark);
-            border-radius: 10px;
-            padding: 25px;
-        }
+    .slide-tag {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: #1e80f0;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
 
-        .card-white h3 {
-            color: var(--accent-teal);
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .slide-num {
+      position: absolute;
+      top: 52px;
+      right: 72px;
+      font-size: .7rem;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
 
-        .card-white ul {
-            list-style-type: none;
-        }
+    .slide-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0d1b3e;
+      margin-bottom: 36px;
+    }
 
-        .card-white li {
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-            line-height: 1.4;
-            position: relative;
-            padding-left: 15px;
-        }
+    /* ─── SLIDE 2 – IDÉE ET PROBLÉMATIQUE ────────────────────── */
+    .s2-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
 
-        .card-white li::before {
-            content: "•";
-            color: var(--accent-teal);
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
+    .s2-idea {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 28px 32px;
+      font-size: .82rem;
+      line-height: 1.65;
+      color: #2d2d2d;
+    }
 
-        /* Slide 2 Layout */
-        .grid-2-custom {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            height: 100%;
-        }
+    .s2-idea h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e80f0;
+      margin-bottom: 14px;
+    }
 
-        .blue-box {
-            background: #192044;
-            border: 1px solid #2e3875;
-            border-radius: 10px;
-            padding: 25px;
-        }
+    .s2-idea p + p { margin-top: 10px; }
 
-        .blue-box h3 {
-            color: #10b981;
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-        }
+    .s2-problem {
+      background: #0d1b3e;
+      border-radius: 18px;
+      padding: 28px 32px;
+    }
 
-        .blue-box p {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #d1d5db;
-            margin-bottom: 15px;
-        }
+    .s2-problem h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #3dd6d0;
+      margin-bottom: 18px;
+    }
 
-        /* Microservices Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            color: var(--text-dark);
-            border-radius: 8px;
-            overflow: hidden;
-            font-size: 0.95rem;
-        }
+    .problem-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
 
-        th {
-            background: #f1f5f9;
-            color: var(--bg-color);
-            padding: 14px 18px;
-            text-align: left;
-            font-weight: bold;
-        }
+    .problem-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 800;
+      color: #fff;
+    }
 
-        td {
-            padding: 12px 18px;
-            border-bottom: 1px solid #e2e8f0;
-        }
+    .problem-num.c1 { background: #1e80f0; }
+    .problem-num.c2 { background: #f5a623; }
+    .problem-num.c3 { background: #3dd6d0; }
+    .problem-num.c4 { background: #1e80f0; }
+    .problem-num.c5 { background: #3dd6d0; }
 
-        tr:nth-child(even) td {
-            background: #f8fafc;
-        }
+    .problem-text {
+      font-size: .75rem;
+      color: #cdd9e8;
+      line-height: 1.4;
+    }
 
-        /* Controls Footer */
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            width: 100%;
-            max-width: 1000px;
-        }
+    /* ─── SLIDE 3 – FONCTIONNALITÉS ──────────────────────────── */
+    .s3-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
 
-        .btn {
-            background: var(--accent-teal);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+    .feat-col {
+      border-radius: 18px;
+      overflow: hidden;
+    }
 
-        .btn:hover {
-            background: #0b6880;
-        }
+    .feat-header {
+      padding: 16px;
+      text-align: center;
+      font-weight: 700;
+      font-size: .9rem;
+      color: #fff;
+    }
 
-        .slide-counter {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-    </style>
+    .feat-header.pass { background: #1e80f0; }
+    .feat-header.cond { background: #f5a623; }
+    .feat-header.trans { background: #3dd6d0; }
+
+    .feat-body {
+      background: #fff;
+      border-radius: 0 0 18px 18px;
+      padding: 20px 20px 28px;
+    }
+
+    .feat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      font-size: .82rem;
+      font-weight: 500;
+      color: #1a1a2e;
+    }
+
+    .feat-check {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: .7rem;
+    }
+
+    .feat-check.pass { background: #1e80f0; }
+    .feat-check.cond { background: #f5a623; }
+    .feat-check.trans { background: #3dd6d0; }
+
+    /* ─── SLIDE 4 – ARCHITECTURE ─────────────────────────────── */
+    .s4-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .arch-principles {
+      background: #0d1b3e;
+      border-radius: 18px;
+      padding: 28px 32px;
+      color: #fff;
+    }
+
+    .arch-principles h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #3dd6d0;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .arch-principles ul {
+      list-style: none;
+    }
+
+    .arch-principles ul li {
+      font-size: .78rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+      color: #d8e4f0;
+    }
+
+    .arch-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .arch-box {
+      background: #0d1b3e;
+      color: #fff;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: .78rem;
+      font-weight: 700;
+      text-align: center;
+      flex: 1;
+    }
+
+    .arch-box.gateway { background: #1a7a72; }
+    .arch-box.service { background: #1a5a8a; flex: none; padding: 10px 14px; }
+
+    .arch-caption {
+      text-align: center;
+      font-size: .72rem;
+      color: #888;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    /* ─── SLIDE 5 – MICROSERVICES ────────────────────────────── */
+    .s5-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .ms-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 20px 18px 28px;
+      border-left: 5px solid;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+
+    .ms-card h4 {
+      font-size: .88rem;
+      font-weight: 700;
+      color: #0d1b3e;
+      margin-bottom: 4px;
+    }
+
+    .ms-card p {
+      font-size: .75rem;
+      color: #666;
+    }
+
+    .ms-card.blue   { border-color: #1e80f0; }
+    .ms-card.teal   { border-color: #3dd6d0; }
+    .ms-card.green  { border-color: #27ae60; }
+    .ms-card.orange { border-color: #f5a623; }
+
+    /* ─── SLIDE 6 – TECHNOLOGIES ─────────────────────────────── */
+    .s6-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .tech-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .tech-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .tech-circle.blue   { background: #1e80f0; }
+    .tech-circle.teal   { background: #3dd6d0; }
+    .tech-circle.green  { background: #27ae60; }
+    .tech-circle.orange { background: #f5a623; }
+
+    .tech-info h4 {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #0d1b3e;
+      margin-bottom: 3px;
+    }
+
+    .tech-info .tech-main {
+      font-size: .74rem;
+      font-weight: 700;
+    }
+
+    .tech-info .tech-sub {
+      font-size: .7rem;
+      color: #777;
+    }
+
+    .tech-main.blue   { color: #1e80f0; }
+    .tech-main.teal   { color: #16a085; }
+    .tech-main.green  { color: #27ae60; }
+    .tech-main.orange { color: #e67e22; }
+
+    .common-banner {
+      background: #0d1b3e;
+      border-radius: 14px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: #fff;
+    }
+
+    .common-banner .banner-tag {
+      font-weight: 800;
+      font-size: .85rem;
+      color: #3dd6d0;
+      white-space: nowrap;
+    }
+
+    .common-banner .banner-text {
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
+    /* ─── SLIDE 7 – ÉQUIPE / RÉPARTITION ─────────────────────── */
+    .s7-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .team-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .team-num-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+
+    .team-num-circle.c1 { background: #1e80f0; }
+    .team-num-circle.c2 { background: #3dd6d0; }
+    .team-num-circle.c3 { background: #27ae60; }
+    .team-num-circle.c4 { background: #f5a623; }
+    .team-num-circle.c5 { background: #1e80f0; }
+    .team-num-circle.c6 { background: #3dd6d0; }
+
+    .team-info h4 {
+      font-size: .88rem;
+      font-weight: 700;
+      color: #0d1b3e;
+      margin-bottom: 4px;
+    }
+
+    .team-info p {
+      font-size: .75rem;
+      color: #777;
+    }
+
+    .team-banner {
+      background: #0d1b3e;
+      border-radius: 14px;
+      padding: 22px 28px;
+      text-align: center;
+      color: #fff;
+      font-size: .85rem;
+      font-weight: 700;
+    }
+
+    /* ─── SLIDE 8 – WORKFLOW / GIT ───────────────────────────── */
+    .s8-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .s8-git-box {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .s8-git-box h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e80f0;
+      margin-bottom: 16px;
+    }
+
+    .s8-git-box ul {
+      list-style: none;
+      font-size: .78rem;
+      color: #333;
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .s8-git-box ul li {
+      margin-bottom: 8px;
+    }
+
+    .git-branch-diagram {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .git-node {
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: .7rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+    }
+
+    .git-node.main { background: #0d1b3e; }
+    .git-node.dev  { background: #3dd6d0; color: #0d1b3e; }
+    .git-node.feat { background: #1e80f0; }
+
+    .git-arrow { color: #888; font-size: .8rem; }
+
+    .s8-pm-box {
+      background: #0d1b3e;
+      border-radius: 18px;
+      padding: 28px 32px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .s8-pm-box h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #3dd6d0;
+      margin-bottom: 18px;
+    }
+
+    .s8-pm-content {
+      font-size: .78rem;
+      line-height: 1.8;
+      color: #d8e4f0;
+      margin-bottom: 24px;
+    }
+
+    .s8-pm-content u {
+      text-decoration-color: #3dd6d0;
+    }
+
+    .s8-pm-banner {
+      background: #15254d;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      color: #3dd6d0;
+      font-weight: 700;
+      font-size: .8rem;
+    }
+
+    /* ─── SLIDE 9 – ROADMAP ──────────────────────────────────── */
+    .s9-planning-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1e80f0;
+      margin-bottom: 12px;
+    }
+
+    .s9-timeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .tl-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .tl-header {
+      padding: 8px;
+      text-align: center;
+      font-weight: 800;
+      font-size: .75rem;
+      color: #fff;
+    }
+
+    .tl-header.c1 { background: #1e80f0; }
+    .tl-header.c2 { background: #3dd6d0; }
+    .tl-header.c3 { background: #27ae60; }
+    .tl-header.c4 { background: #f5a623; }
+    .tl-header.c5 { background: #1e80f0; }
+    .tl-header.c6 { background: #3dd6d0; }
+
+    .tl-body {
+      padding: 12px 8px;
+      font-size: .68rem;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      line-height: 1.3;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .s9-risks-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #e74c3c;
+      margin-bottom: 12px;
+    }
+
+    .s9-risks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .risk-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,.03);
+    }
+
+    .risk-name {
+      font-size: .75rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      width: 40%;
+    }
+
+    .risk-desc {
+      font-size: .68rem;
+      color: #666;
+      width: 58%;
+      line-height: 1.25;
+    }
+
+    .s9-mitigation-banner {
+      background: #0d1b3e;
+      border-radius: 8px;
+      padding: 12px 18px;
+      text-align: center;
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 600;
+    }
+
+    /* ─── SLIDE 10 – CONCLUSION ──────────────────────────────── */
+    .s10-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .conc-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    }
+
+    .conc-num {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .conc-num.c1 { background: #1e80f0; }
+    .conc-num.c2 { background: #f5a623; }
+    .conc-num.c3 { background: #3dd6d0; }
+
+    .conc-info h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0d1b3e;
+      margin-bottom: 6px;
+    }
+
+    .conc-info p {
+      font-size: .82rem;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    /* ─── PRINT / SCROLL WRAPPER ─────────────────────────────── */
+    .wrapper {
+      padding: 40px 0;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    svg.cars-svg { width: 100%; height: 100%; }
+  </style>
 </head>
 <body>
+<div class="wrapper">
 
-    <div class="slide-container">
-        
-        <!-- Slide 1 -->
-        <div class="slide title-slide active">
-            <div class="deco-circle"><div class="deco-circle-inner"></div></div>
-            <h1>SmartRide</h1>
-            <p>Plateforme de covoiturage intelligente avec matching par IA</p>
-            <div class="team-list">
-                <strong>Équipe :</strong><br>
-                • Baccari Ibtihel (ibtihel.baccari@esprit.tn)<br>
-                • Ghofran Hajjej (ghofran.Hajjej@esprit.tn)
-            </div>
-            <div style="margin-top: auto; font-size: 0.85rem; color: var(--text-muted); font-style: italic;">
-                Séance 4 — Présentation synthétique du projet
-            </div>
-        </div>
+  <!-- ══════════════════════════════
+       SLIDE 1 · COVER
+  ══════════════════════════════════ -->
+  <section class="slide slide-cover" id="slide-1">
+    <h1>SmartRide</h1>
+    <p class="subtitle">Plateforme de covoiturage intelligente avec matching par IA</p>
 
-        <!-- Slide 2 -->
-        <div class="slide">
-            <h2>Idée et problématique</h2>
-            <div class="grid-2-custom">
-                <div class="blue-box">
-                    <h3>Idée générale</h3>
-                    <p>SmartRide est une plateforme de covoiturage qui connecte conducteurs et passagers effectuant des trajets similaires. Un moteur de matching intelligent (IA) analyse itinéraires, horaires et préférences pour proposer automatiquement les correspondances les plus pertinentes, plutôt qu'une simple recherche par filtres.</p>
-                    <p><em>L'utilisateur réserve, paie et note son trajet directement sur la plateforme, avec un suivi en temps réel et une vérification d'identité pour instaurer la confiance.</em></p>
-                </div>
-                <div>
-                    <h3 style="color: #38bdf8; margin-bottom: 15px; font-size: 1.3rem;">Problématique</h3>
-                    <ul style="list-style-type: none; font-size: 0.9rem; line-height: 1.5;">
-                        <li style="margin-bottom: 10px;">• Recherche de trajet manuelle et peu optimisée</li>
-                        <li style="margin-bottom: 10px;">• Manque de confiance entre inconnus (pas de vérification fiable)</li>
-                        <li style="margin-bottom: 10px;">• Trajets sous-optimaux ne se croisant jamais faute de bon matching</li>
-                        <li style="margin-bottom: 10px;">• Coût et impact environnemental élevés du transport individuel</li>
-                        <li style="margin-bottom: 10px;">• Absence de suivi centralisé (réservation, paiement, évaluation)</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slide 3 -->
-        <div class="slide">
-            <h2>Principales fonctionnalités</h2>
-            <div class="grid-3">
-                <div class="card-white">
-                    <h3><span style="display:inline-block; width:14px; height:14px; background:#0d5c80; border-radius:50%;"></span> Passager</h3>
-                    <ul>
-                        <li>Recherche de trajet</li>
-                        <li>Matching intelligent (IA)</li>
-                        <li>Réservation & paiement</li>
-                        <li>Évaluation & historique</li>
-                    </ul>
-                </div>
-                <div class="card-white">
-                    <h3><span style="display:inline-block; width:14px; height:14px; background:#0e85a3; border-radius:50%;"></span> Conducteur</h3>
-                    <ul>
-                        <li>Publication de trajet</li>
-                        <li>Gestion des réservations</li>
-                        <li>Réception du paiement</li>
-                        <li>Évaluation du passager</li>
-                    </ul>
-                </div>
-                <div class="card-white">
-                    <h3><span style="display:inline-block; width:14px; height:14px; background:#1e2454; border-radius:50%;"></span> Transverse</h3>
-                    <ul>
-                        <li>Chat conducteur ↔ passager</li>
-                        <li>Notifications push/SMS</li>
-                        <li>Vérification d'identité</li>
-                        <li>Suivi en temps réel</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slide 4 -->
-        <div class="slide">
-            <h2>Microservices et responsabilités</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Service</th>
-                        <th>Technologie</th>
-                        <th>Base de Données</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>User Service</strong></td>
-                        <td>Spring Boot (Java)</td>
-                        <td><strong>MySQL / phpMyAdmin (XAMPP)</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Trip Service</strong></td>
-                        <td>Go</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Booking Service</strong></td>
-                        <td>Node.js + Express</td>
-                        <td><strong>PostgreSQL</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Payment Service</strong></td>
-                        <td>Python + FastAPI</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Rating/Chat Service</strong></td>
-                        <td>NestJS (TypeScript)</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Notification/Tracking Service</strong></td>
-                        <td>Symfony (PHP)</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Matching Service (IA)</strong></td>
-                        <td>Python + FastAPI</td>
-                        <td>-</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Slide 5 -->
-        <div class="slide">
-            <h2>Architecture globale proposée</h2>
-            <div class="grid-2-custom">
-                <ul style="list-style: none; font-size: 0.95rem; line-height: 1.7; color: #e2e8f0;">
-                    <li>• Architecture microservices polyglotte — un service par fonctionnalité métier</li>
-                    <li>• API Gateway : point d'entrée unique, routage vers les services</li>
-                    <li>• Service Discovery : localisation dynamique des services</li>
-                    <li>• Config Server : configuration centralisée</li>
-                    <li>• Database per Service : MySQL (XAMPP) pour User, PostgreSQL pour Booking</li>
-                    <li>• Frontend unique (Angular) consommant les API via la Gateway</li>
-                </ul>
-                <div style="background:#131836; padding:20px; border-radius:10px; display:flex; flex-direction:column; align-items:center; gap:8px;">
-                    <div style="background:#272f69; width:90%; padding:10px; text-align:center; border-radius:6px; font-weight:bold;">Frontend (Angular)</div>
-                    <div style="color:#0e85a3;">↓</div>
-                    <div style="background:#0d5c80; width:90%; padding:10px; text-align:center; border-radius:6px; font-weight:bold;">API Gateway</div>
-                    <div style="color:#0e85a3;">↓</div>
-                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; width:90%;">
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">User (Java / MySQL)</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Trip (Go)</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Booking (Node / Postgres)</div>
-                        <div style="background:#0e85a3; font-size:0.7rem; padding:6px; text-align:center; border-radius:4px;">Payment (Python)</div>
-                    </div>
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:90%;">
-                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Rating/Chat (Nest)</div>
-                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Notif/Track (PHP)</div>
-                        <div style="background:#0e85a3; font-size:0.75rem; padding:6px; text-align:center; border-radius:4px;">Matching IA (FastAPI)</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="cover-team-box">
+      <p class="team-label">Realisé par:</p>
+      <ul>
+        <li>Mahdi naifer</li>
+        <li>Hafedh Hammami</li>
+        <li>Ghofran Hajiej</li>
+        <li>Ibtihel Baccari</li>
+        <li>Aymen Arfeoui</li>
+        <li>Hamza Ben Hmida</li>
+      </ul>
     </div>
 
-    <div class="controls">
-        <button class="btn" onclick="prevSlide()">Précédent</button>
-        <span class="slide-counter" id="slideCounter">Slide 1 sur 5</span>
-        <button class="btn" onclick="nextSlide()">Suivant</button>
+    <div class="cover-footer">
+      <a href="#">SmartRide</a>
     </div>
 
-    <script>
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
-        const counter = document.getElementById('slideCounter');
+    <!-- Animated cars SVG illustration -->
+    <div class="cover-illustration">
+      <svg class="cars-svg" viewBox="0 0 380 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="40,300 130,220 180,260 260,160 320,100 360,60"
+                  stroke="#3dd6d0" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="40"  cy="300" r="12" fill="#1e80f0"/>
+        <circle cx="180" cy="260" r="10" fill="#1e80f0"/>
+        <circle cx="260" cy="160" r="12" fill="#1e80f0"/>
+        <circle cx="360" cy="60"  r="12" fill="#1e80f0"/>
 
-        function updateSlide() {
-            slides.forEach((slide, index) => {
-                slide.classList.toggle('active', index === currentSlide);
-            });
-            counter.innerText = `Slide ${currentSlide + 1} sur ${slides.length}`;
-        }
+        <g transform="translate(120,208) rotate(-40)">
+          <rect x="-16" y="-10" width="32" height="20" rx="4" fill="#fff"/>
+          <rect x="-10" y="-16" width="20" height="12" rx="3" fill="#d0eaf8"/>
+          <circle cx="-10" cy="10" r="5" fill="#555"/>
+          <circle cx="10"  cy="10" r="5" fill="#555"/>
+        </g>
 
-        function nextSlide() {
-            if (currentSlide < slides.length - 1) {
-                currentSlide++;
-                updateSlide();
-            }
-        }
+        <g transform="translate(250,148) rotate(-52)">
+          <rect x="-16" y="-10" width="32" height="20" rx="4" fill="#fff"/>
+          <rect x="-10" y="-16" width="20" height="12" rx="3" fill="#d0eaf8"/>
+          <circle cx="-10" cy="10" r="5" fill="#555"/>
+          <circle cx="10"  cy="10" r="5" fill="#555"/>
+        </g>
 
-        function prevSlide() {
-            if (currentSlide > 0) {
-                currentSlide--;
-                updateSlide();
-            }
-        }
+        <g transform="translate(345,72) rotate(-52)">
+          <rect x="-16" y="-10" width="32" height="20" rx="4" fill="#fff"/>
+          <rect x="-10" y="-16" width="20" height="12" rx="3" fill="#d0eaf8"/>
+          <circle cx="-10" cy="10" r="5" fill="#555"/>
+          <circle cx="10"  cy="10" r="5" fill="#555"/>
+        </g>
+      </svg>
+    </div>
+  </section>
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') nextSlide();
-            if (e.key === 'ArrowLeft') prevSlide();
-        });
-    </script>
+  <!-- ══════════════════════════════
+       SLIDE 2 · IDÉE ET PROBLÉMATIQUE
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-2">
+    <span class="slide-num">02</span>
+    <p class="slide-tag">01 • CONTEXTE</p>
+    <h2 class="slide-title">Idée et problématique</h2>
+
+    <div class="s2-grid">
+      <div class="s2-idea">
+        <h3>Idée générale</h3>
+        <p>SmartRide est une plateforme de covoiturage qui connecte conducteurs et passagers effectuant des trajets similaires. Un moteur de matching intelligent (IA) analyse itinéraires, horaires et préférences pour proposer automatiquement les correspondances les plus pertinentes, plutôt qu'une simple recherche par filtres.</p>
+        <p>L'utilisateur réserve, paie et note son trajet directement sur la plateforme, avec un suivi en temps réel et une vérification d'identité pour instaurer la confiance.</p>
+      </div>
+
+      <div class="s2-problem">
+        <h3>Problématique</h3>
+
+        <div class="problem-item">
+          <span class="problem-num c1">1</span>
+          <p class="problem-text">Recherche de trajet manuelle et peu optimisée : les utilisateurs comparent eux-mêmes horaires et itinéraires</p>
+        </div>
+        <div class="problem-item">
+          <span class="problem-num c2">2</span>
+          <p class="problem-text">Manque de confiance entre inconnus : pas de vérification fiable ni d'historique partagé</p>
+        </div>
+        <div class="problem-item">
+          <span class="problem-num c3">3</span>
+          <p class="problem-text">Trajets sous-optimaux : deux personnes faisant presque le même trajet ne se croisent jamais faute de bon matching</p>
+        </div>
+        <div class="problem-item">
+          <span class="problem-num c4">4</span>
+          <p class="problem-text">Coût et impact environnemental élevés du transport individuel, faute d'alternative pratique</p>
+        </div>
+        <div class="problem-item">
+          <span class="problem-num c5">5</span>
+          <p class="problem-text">Absence de suivi centralisé (réservation, paiement, évaluation) au même endroit</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 3 · FONCTIONNALITÉS
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-3">
+    <span class="slide-num">03</span>
+    <p class="slide-tag">02 • PRODUIT</p>
+    <h2 class="slide-title">Principales fonctionnalités</h2>
+
+    <div class="s3-grid">
+      <div class="feat-col">
+        <div class="feat-header pass">Passager</div>
+        <div class="feat-body">
+          <div class="feat-item">
+            <span class="feat-check pass">✓</span> Recherche de trajet
+          </div>
+          <div class="feat-item">
+            <span class="feat-check pass">✓</span> Matching intelligent (IA)
+          </div>
+          <div class="feat-item">
+            <span class="feat-check pass">✓</span> Réservation &amp; paiement
+          </div>
+          <div class="feat-item">
+            <span class="feat-check pass">✓</span> Évaluation &amp; historique
+          </div>
+        </div>
+      </div>
+
+      <div class="feat-col">
+        <div class="feat-header cond">Conducteur</div>
+        <div class="feat-body">
+          <div class="feat-item">
+            <span class="feat-check cond">✓</span> Publication de trajet
+          </div>
+          <div class="feat-item">
+            <span class="feat-check cond">✓</span> Gestion des réservations
+          </div>
+          <div class="feat-item">
+            <span class="feat-check cond">✓</span> Réception du paiement
+          </div>
+          <div class="feat-item">
+            <span class="feat-check cond">✓</span> Évaluation du passager
+          </div>
+        </div>
+      </div>
+
+      <div class="feat-col">
+        <div class="feat-header trans">Transverse</div>
+        <div class="feat-body">
+          <div class="feat-item">
+            <span class="feat-check trans">✓</span> Chat conducteur ↔ passager
+          </div>
+          <div class="feat-item">
+            <span class="feat-check trans">✓</span> Notifications
+          </div>
+          <div class="feat-item">
+            <span class="feat-check trans">✓</span> Vérification d'identité
+          </div>
+          <div class="feat-item">
+            <span class="feat-check trans">✓</span> Suivi en temps réel
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 4 · ARCHITECTURE
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-4">
+    <span class="slide-num">04</span>
+    <p class="slide-tag">03 • ARCHITECTURE</p>
+    <h2 class="slide-title">Architecture globale proposée</h2>
+
+    <div class="s4-grid">
+      <div class="arch-principles">
+        <h3>Principes</h3>
+        <ul>
+          <li>• Architecture microservices — un service par fonctionnalité métier</li>
+          <li>• API Gateway : point d'entrée unique, routage vers les services</li>
+          <li>• Service Discovery : localisation dynamique des services</li>
+          <li>• Config Server : configuration centralisée</li>
+          <li>• Database per Service : chaque microservice a sa propre base</li>
+          <li>• Frontend unique (Angular) consommant les API via le Gateway</li>
+        </ul>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;justify-content:center;">
+        <div class="arch-row">
+          <div class="arch-box" style="background:#0d1b3e;">Frontend (Angular)</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-box gateway">API Gateway</div>
+        </div>
+        <div class="arch-row" style="flex-wrap:wrap;gap:8px;justify-content:center;">
+          <div class="arch-box service">User</div>
+          <div class="arch-box service">Trip</div>
+          <div class="arch-box service">Booking</div>
+          <div class="arch-box service">Payment</div>
+        </div>
+        <div class="arch-row" style="justify-content:center;gap:8px;">
+          <div class="arch-box service">Rating/Chat</div>
+          <div class="arch-box service">Notif/Track</div>
+          <div class="arch-box service">Matching (IA)</div>
+        </div>
+        <p class="arch-caption">Chaque microservice → sa propre base de données</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 5 · MICROSERVICES
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-5">
+    <span class="slide-num">05</span>
+    <p class="slide-tag">04 • BACKEND</p>
+    <h2 class="slide-title">Microservices et responsabilités</h2>
+
+    <div class="s5-grid">
+      <div class="ms-card blue">
+        <h4>User Service</h4>
+        <p>Authentification, profils, vérification d'identité</p>
+      </div>
+      <div class="ms-card teal">
+        <h4>Trip Service</h4>
+        <p>Publication et recherche de trajet</p>
+      </div>
+      <div class="ms-card green">
+        <h4>Booking Service</h4>
+        <p>Réservation, confirmation</p>
+      </div>
+      <div class="ms-card orange">
+        <h4>Payment Service</h4>
+        <p>Paiement en ligne</p>
+      </div>
+      <div class="ms-card blue">
+        <h4>Rating + Chat Service</h4>
+        <p>Évaluations, messagerie</p>
+      </div>
+      <div class="ms-card teal">
+        <h4>Notification + Tracking Service</h4>
+        <p>Notifications, suivi en temps réel</p>
+      </div>
+      <div class="ms-card orange">
+        <h4>Matching Service (IA)</h4>
+        <p>Scoring et suggestions de trajets compatibles</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 6 · TECHNOLOGIES CHOISIES
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-6">
+    <span class="slide-num">06</span>
+    <p class="slide-tag">05 • STACK</p>
+    <h2 class="slide-title">Technologies choisies</h2>
+
+    <div class="s6-grid">
+      <div class="tech-card">
+        <div class="tech-circle blue"></div>
+        <div class="tech-info">
+          <h4>User Service</h4>
+          <p class="tech-main blue">Spring Boot (Java)</p>
+          <p class="tech-sub">mysql</p>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-circle teal"></div>
+        <div class="tech-info">
+          <h4>Trip Service</h4>
+          <p class="tech-main teal">Go</p>
+          <p class="tech-sub">PostgreSQL</p>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-circle green"></div>
+        <div class="tech-info">
+          <h4>Booking Service</h4>
+          <p class="tech-main green">Node.js + Express</p>
+          <p class="tech-sub">PostgreSQL</p>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-circle orange"></div>
+        <div class="tech-info">
+          <h4>Payment Service</h4>
+          <p class="tech-main orange">Python + FastAPI</p>
+          <p class="tech-sub">Mongodb</p>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-circle blue"></div>
+        <div class="tech-info">
+          <h4>Rating/Chat Service</h4>
+          <p class="tech-main blue">NestJS (TypeScript)</p>
+          <p class="tech-sub">MongoDb</p>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-circle teal"></div>
+        <div class="tech-info">
+          <h4>Notification/Tracking Service</h4>
+          <p class="tech-main teal">Symfony (PHP)</p>
+          <p class="tech-sub">PostgreSQL</p>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-circle orange"></div>
+        <div class="tech-info">
+          <h4>Matching Service (IA)</h4>
+          <p class="tech-main orange">Python + FastAPI</p>
+          <p class="tech-sub">PostgreSQL</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="common-banner">
+      <span class="banner-tag">Socle commun</span>
+      <span class="banner-text">Frontend : Angular (unique) &nbsp;|&nbsp; Conteneurisation : Docker &nbsp;|&nbsp; Orchestration : Kubernetes &nbsp;|&nbsp; CI/CD : Jenkins</span>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 7 · RÉPARTITION DES TÂCHES
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-7">
+    <span class="slide-num">07</span>
+    <p class="slide-tag">06 • ÉQUIPE</p>
+    <h2 class="slide-title">Répartition des tâches</h2>
+
+    <div class="s7-grid">
+      <div class="team-card">
+        <div class="team-num-circle c1">1</div>
+        <div class="team-info">
+          <h4>Ibtihel Baccari</h4>
+          <p>User Service</p>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-num-circle c2">2</div>
+        <div class="team-info">
+          <h4>Aymen Arfeoui</h4>
+          <p>Trip Service</p>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-num-circle c3">3</div>
+        <div class="team-info">
+          <h4>Ghofran Hajjej</h4>
+          <p>Booking Service</p>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-num-circle c4">4</div>
+        <div class="team-info">
+          <h4>Mahdi naifer</h4>
+          <p>Payment Service</p>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-num-circle c5">5</div>
+        <div class="team-info">
+          <h4>Hamza Ben Hmida</h4>
+          <p>Rating + Chat Service</p>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-num-circle c6">6</div>
+        <div class="team-info">
+          <h4>Hafedh Hammami</h4>
+          <p>Notification + Tracking Service</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-banner">
+      Matching Service (IA) : tâche transverse en binôme, en parallèle du microservice principal de chacun.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 8 · GIT ET GESTION DE PROJET
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-8">
+    <span class="slide-num">08</span>
+    <p class="slide-tag">07 • WORKFLOW</p>
+    <h2 class="slide-title">Organisation Git et gestion de projet</h2>
+
+    <div class="s8-grid">
+      <div class="s8-git-box">
+        <div>
+          <h3>Git</h3>
+          <ul>
+            <li>• Un repository par microservice</li>
+            <li>• Branches : main (stable) / develop (intégration) / feature/non-fonctionnalité</li>
+            <li>• Pull Requests avec revue de code avant fusion</li>
+            <li>• Documentation API commune (Swagger/OpenAPI)</li>
+          </ul>
+        </div>
+        <div class="git-branch-diagram">
+          <div class="git-node main">main</div>
+          <span class="git-arrow">→</span>
+          <div class="git-node dev">develop</div>
+          <span class="git-arrow">→</span>
+          <div class="git-node feat">feature/non-fonctionnalité</div>
+        </div>
+      </div>
+
+      <div class="s8-pm-box">
+        <div>
+          <h3>Gestion de projet</h3>
+          <div class="s8-pm-content">
+            <p><u>Outil</u> : GitHub Projects</p>
+            <p>Backlog <u>découpé en</u> sprints</p>
+            <p><u>Suivi</u> des <u>tâches</u> par <u>membre</u></p>
+            <p>Stand-up <u>réguliers</u> pour <u>synchroniser</u> <u>l'avancement</u></p>
+          </div>
+        </div>
+        <div class="s8-pm-banner">
+          Sprints → suivi → synchronisation
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 9 · PLANNING ET RISQUES
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-9">
+    <span class="slide-num">09</span>
+    <p class="slide-tag">08 • ROADMAP</p>
+    <h2 class="slide-title" style="margin-bottom:24px;">Planning prévisionnel et principaux risques</h2>
+
+    <h3 class="s9-planning-title">Planning</h3>
+    <div class="s9-timeline">
+      <div class="tl-card">
+        <div class="tl-header c1">S1-2</div>
+        <div class="tl-body">Conception (UML, technos, setup repos)</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-header c2">S3-5</div>
+        <div class="tl-body">Développement des microservices</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-header c3">S6-7</div>
+        <div class="tl-body">Matching Service (IA) + API Gateway</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-header c4">S8</div>
+        <div class="tl-body">Intégration globale, tests inter-services</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-header c5">S9</div>
+        <div class="tl-body">Conteneurisation (Docker/Kubernetes)</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-header c6">S10</div>
+        <div class="tl-body">Finalisation, soutenance</div>
+      </div>
+    </div>
+
+    <h3 class="s9-risks-title">Principaux risques et mitigation</h3>
+    <div class="s9-risks-grid">
+      <div class="risk-card">
+        <span class="risk-name">Diversité technologique</span>
+        <span class="risk-desc">Courbe d'apprentissage différente selon la techno → retard possible</span>
+      </div>
+      <div class="risk-card">
+        <span class="risk-name">Intégration inter-services</span>
+        <span class="risk-desc">API incompatibles ou mal documentées entre microservices</span>
+      </div>
+      <div class="risk-card">
+        <span class="risk-name">Dépendances entre services</span>
+        <span class="risk-desc">Un service en retard bloque l'intégration globale</span>
+      </div>
+      <div class="risk-card">
+        <span class="risk-name">Coordination d'équipe</span>
+        <span class="risk-desc">6 technologies différentes à synchroniser</span>
+      </div>
+    </div>
+
+    <div class="s9-mitigation-banner">
+      Mitigation : documentation API commune, stand-ups réguliers, tests d'intégration continus, marge de temps dédiée à l'intégration.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       SLIDE 10 · CONCLUSION
+  ══════════════════════════════════ -->
+  <section class="slide slide-light" id="slide-10">
+    <span class="slide-num">10</span>
+    <p class="slide-tag">09 • CONCLUSION</p>
+    <h2 class="slide-title">Conclusion</h2>
+
+    <div class="s10-stack">
+      <div class="conc-card">
+        <div class="conc-num c1">1</div>
+        <div class="conc-info">
+          <h3>Une plateforme de covoiturage complète</h3>
+          <p>De la recherche de trajet au paiement, au chat et au suivi en temps réel, avec un matching intelligent par IA.</p>
+        </div>
+      </div>
+
+      <div class="conc-card">
+        <div class="conc-num c2">2</div>
+        <div class="conc-info">
+          <h3>Une architecture microservices solide</h3>
+          <p>Sept services indépendants derrière une API Gateway, chacun avec sa propre base de données.</p>
+        </div>
+      </div>
+
+      <div class="conc-card">
+        <div class="conc-num c3">3</div>
+        <div class="conc-info">
+          <h3>Une démarche DevOps de bout en bout</h3>
+          <p>Docker, Kubernetes et Jenkins pour un déploiement reproductible et un travail d'équipe en parallèle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
 </body>
 </html>
