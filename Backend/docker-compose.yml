@@ -100,6 +100,18 @@ services:
     networks:
       - smartride-net
 
+  mysql-dashboard:
+    image: mysql:8.0
+    container_name: smartride-db-dashboard
+    environment:
+      MYSQL_DATABASE: dashboard_db
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3307:3306"
+    networks:
+      - smartride-net
+
+
   # Microservices
   user-service:
     build: ./user-service
@@ -196,6 +208,24 @@ services:
       - discovery-server
     networks:
       - smartride-net
+
+  dashboard-service:
+    build: ./dashboard-service
+    container_name: smartride-dashboard-service
+    ports:
+      - "8088:8088"
+    environment:
+      - MYSQL_HOST=mysql-dashboard
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=password
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - mysql-dashboard
+      - discovery-server
+    networks:
+      - smartride-net
+
 
 networks:
   smartride-net:

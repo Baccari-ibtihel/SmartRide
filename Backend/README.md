@@ -16,6 +16,7 @@ Ce dossier regroupe l'ensemble des microservices et serveurs d'infrastructure co
 | **`rating-chat-service`** | **NestJS (TypeScript)** | - | `8085` | Messagerie instantanée en temps réel (WebSockets) et système d'avis/notes. |
 | **`notification-tracking-service`** | **Symfony (PHP)** | - | `8086` | Envoi de notifications (push/email) et suivi GPS temps réel. |
 | **`matching-ia-service`** | **Python + FastAPI** | - | `8087` | Moteur d'IA & algorithme de scoring pour matcher les trajets compatibles. |
+| **`dashboard-service`** | **Spring Boot (Java)** | **MySQL (`dashboard_db`)** | `8088` | **Module 7**: Statistiques de la plateforme, suivi trajets, utilisateurs, réservations, paiements & tableau de bord admin. |
 
 ## Lancement local avec Docker Compose
 
