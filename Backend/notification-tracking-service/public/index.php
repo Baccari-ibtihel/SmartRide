@@ -1,8 +1,9 @@
 <?php
 
-header('Content-Type: application/json');
+use App\Kernel;
 
-echo json_encode([
-    'status' => 'UP',
-    'service' => 'Notification/Tracking Service (Symfony PHP)'
-]);
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
+
+return function (array $context) {
+    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+};

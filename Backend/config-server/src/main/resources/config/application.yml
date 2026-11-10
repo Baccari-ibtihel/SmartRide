@@ -1,0 +1,5 @@
+# Configuration partagée pour tous les microservices SmartRide
+logging:
+  level:
+    root: INFO
+    com.smartride: DEBUG

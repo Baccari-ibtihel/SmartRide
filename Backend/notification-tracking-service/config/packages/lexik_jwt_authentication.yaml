@@ -1,0 +1,6 @@
+lexik_jwt_authentication:
+    secret_key: '%env(resolve:JWT_SECRET_KEY)%'   # clé privée : seulement pour signer (service User / token de dev)
+    public_key: '%env(resolve:JWT_PUBLIC_KEY)%'   # clé publique : suffit pour VÉRIFIER les tokens
+    pass_phrase: '%env(JWT_PASSPHRASE)%'
+    token_ttl: 3600
+    user_id_claim: sub                            # le claim "sub" devient l'identifiant de l'utilisateur

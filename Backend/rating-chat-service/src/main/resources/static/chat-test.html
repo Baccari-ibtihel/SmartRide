@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SmartRide Chat Test</title>
+    <!-- Page de test du WebSocket (pas le vrai frontend). Ouvrir 2 onglets : un passager, un conducteur. -->
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color: #1d2b2a; background: #f7faf9; }
+        h1 { font-size: 22px; }
+        fieldset { border: 1px solid #c9d8d4; border-radius: 8px; margin-bottom: 14px; background: #fff; }
+        label { display: inline-block; margin: 4px 10px 4px 0; font-size: 14px; }
+        input { padding: 5px 7px; border: 1px solid #b7c9c4; border-radius: 5px; }
+        input.small { width: 70px; }
+        input.wide { width: 260px; }
+        button { padding: 6px 12px; border: 0; border-radius: 5px; background: #0b6e5f; color: #fff; cursor: pointer; margin: 4px 4px 4px 0; }
+        button:disabled { background: #9db5af; cursor: default; }
+        #messages { height: 260px; overflow-y: auto; background: #fff; border: 1px solid #c9d8d4; border-radius: 8px; padding: 10px; }
+        .msg { margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: #e7f1ee; max-width: 75%; }
+        .msg.mine { background: #0b6e5f; color: #fff; margin-left: auto; }
+        .meta { font-size: 11px; opacity: .75; }
+        #typing { height: 18px; font-size: 13px; font-style: italic; color: #5d736d; }
+        #log { font: 12px monospace; white-space: pre-wrap; background: #1d2b2a; color: #d8efe8; padding: 10px; border-radius: 8px; max-height: 180px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+<h1>SmartRide - test du chat temps reel</h1>
+
+<fieldset>
+    <legend>1. Connexion</legend>
+    <label>API <input id="api" class="wide" value="http://localhost:8080"></label>
+    <label>WebSocket <input id="ws" class="wide" value="ws://localhost:8080/ws/chat"></label><br>
+    <label>Mon userId <input id="userId" class="small" value="1"></label>
+    <button id="connectBtn">Se connecter</button>
+    <button id="disconnectBtn" disabled>Deconnecter</button>
+</fieldset>
+
+<fieldset>
+    <legend>2. Conversation</legend>
+    <label>tripId <input id="tripId" class="small" value="100"></label>
+    <label>passengerId <input id="passengerId" class="small" value="1"></label>
+    <label>driverId <input id="driverId" class="small" value="2"></label>
+    <button id="openBtn" disabled>Ouvrir la conversation</button>
+</fieldset>
+
+<div id="messages"></div>
+<div id="typing"></div>
+<p>
+    <input id="text" class="wide" placeholder="Votre message..." disabled>
+    <button id="sendBtn" disabled>Envoyer</button>
+    <button id="readBtn" disabled>Marquer comme lu</button>
+</p>
+<div id="log"></div>
+
+<script>
+    const $ = id => document.getElementById(id);
+    let client = null, conversationId = null, conversationSubs = [], typingTimer = null;
+
+    function log(text) {
+        $('log').textContent += new Date().toLocaleTimeString() + '  ' + text + '\n';
+        $('log').scrollTop = $('log').scrollHeight;
+    }
+    function me() { return Number($('userId').value); }
+
+    function showMessage(m) {
+        const div = document.createElement('div');
+        div.className = 'msg' + (m.senderId === me() ? ' mine' : '');
+        div.innerHTML = '<div class="meta"></div><div class="body"></div>';
+        div.querySelector('.meta').textContent = 'user ' + m.senderId + ' - ' + m.sentAt + (m.readAt ? ' - lu' : '');
+        div.querySelector('.body').textContent = m.content;
+        $('messages').appendChild(div);
+        $('messages').scrollTop = $('messages').scrollHeight;
+    }
+
+    async function api(method, path, body) {
+        const res = await fetch($('api').value + path, {
+            method,
+            headers: { 'Content-Type': 'application/json', 'X-User-Id': String(me()) },
+            body: body ? JSON.stringify(body) : undefined
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(res.status + ' ' + (data && data.detail ? data.detail : ''));
+        return data;
+    }
+
+    $('connectBtn').onclick = () => {
+        client = new StompJs.Client({
+            brokerURL: $('ws').value,
+            connectHeaders: { userId: String(me()) },
+            reconnectDelay: 0,
+            onConnect: () => {
+                log('Connecte en tant que user ' + me());
+                client.subscribe('/user/queue/messages', f => log('Notification (nouveau message) : ' + f.body));
+                client.subscribe('/user/queue/errors', f => log('ERREUR : ' + JSON.parse(f.body).message));
+                $('connectBtn').disabled = true; $('disconnectBtn').disabled = false; $('openBtn').disabled = false;
+            },
+            onStompError: f => log('Erreur STOMP : ' + f.headers.message),
+            onWebSocketClose: () => {
+                log('WebSocket ferme');
+                $('connectBtn').disabled = false; $('disconnectBtn').disabled = true;
+                ['openBtn', 'sendBtn', 'readBtn', 'text'].forEach(id => $(id).disabled = true);
+            }
+        });
+        client.activate();
+    };
+
+    $('disconnectBtn').onclick = () => client && client.deactivate();
+
+    $('openBtn').onclick = async () => {
+        try {
+            const conv = await api('POST', '/api/chat/conversations', {
+                tripId: Number($('tripId').value),
+                passengerId: Number($('passengerId').value),
+                driverId: Number($('driverId').value)
+            });
+            conversationId = conv.id;
+            log('Conversation ' + conv.id + ' ouverte avec user ' + conv.otherParticipantId);
+
+            const history = await api('GET', '/api/chat/conversations/' + conv.id + '/messages?size=50');
+            $('messages').innerHTML = '';
+            history.content.reverse().forEach(showMessage);
+
+            conversationSubs.forEach(s => s.unsubscribe());
+            conversationSubs = [
+                client.subscribe('/topic/conversations/' + conv.id, f => showMessage(JSON.parse(f.body))),
+                client.subscribe('/topic/conversations/' + conv.id + '/typing', f => {
+                    const t = JSON.parse(f.body);
+                    if (t.userId !== me()) $('typing').textContent = t.typing ? 'user ' + t.userId + ' est en train d\'ecrire...' : '';
+                }),
+                client.subscribe('/topic/conversations/' + conv.id + '/read', f => log('Accuse de lecture : ' + f.body))
+            ];
+            ['sendBtn', 'readBtn', 'text'].forEach(id => $(id).disabled = false);
+        } catch (e) {
+            log('Erreur : ' + e.message);
+        }
+    };
+
+    function sendTyping(typing) {
+        client.publish({ destination: '/app/chat.typing', body: JSON.stringify({ conversationId, typing }) });
+    }
+
+    $('text').oninput = () => {
+        if (!typingTimer) sendTyping(true);
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => { sendTyping(false); typingTimer = null; }, 1500);
+    };
+
+    function send() {
+        const content = $('text').value.trim();
+        if (!content) return;
+        client.publish({ destination: '/app/chat.send', body: JSON.stringify({ conversationId, content }) });
+        $('text').value = '';
+    }
+    $('sendBtn').onclick = send;
+    $('text').onkeydown = e => { if (e.key === 'Enter') send(); };
+
+    $('readBtn').onclick = () => client.publish({ destination: '/app/chat.read', body: JSON.stringify({ conversationId }) });
+</script>
+</body>
+</html>

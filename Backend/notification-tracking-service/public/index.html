@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartRide – Notifications &amp; Tracking</title>
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<style>
+:root{
+  --bg:#f5f6fa; --card:#fff; --text:#1b1f2a; --muted:#6b7280; --line:#e5e7ee;
+  --accent:#4f46e5; --accent-soft:#eef0ff; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+  --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0f1220; --card:#181c2e; --text:#e8eaf3; --muted:#98a0b8; --line:#2a3050;
+    --accent:#8b86ff; --accent-soft:#252a52; --shadow:none; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1000}
+.bar{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:18px;letter-spacing:-.2px}
+.brand span{color:var(--accent)}
+nav{display:flex;gap:4px}
+nav button{border:0;background:none;color:var(--muted);padding:8px 14px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+nav button.active{background:var(--accent-soft);color:var(--accent)}
+.sp{flex:1}
+#apiState{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+#apiState i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+#apiState.ok i{background:var(--ok)} #apiState.ko i{background:var(--bad)}
+main{max-width:1180px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card h2{margin:0;font-size:16px}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-b{padding:16px}
+.grid{display:grid;gap:20px}
+.cols{grid-template-columns:minmax(0,1fr) 360px}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+textarea{resize:vertical;min-height:70px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.row>*{flex:1;min-width:110px}
+.row>.auto{flex:0 0 auto;min-width:0}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 14px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.bad{color:var(--bad)} .btn.bad:hover{border-color:var(--bad)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+.badge.PENDING{background:#f1f2f6;color:#6b7280}
+.badge.STARTED{background:#dcfce7;color:#15803d}
+.badge.ARRIVED{background:#fef3c7;color:#b45309}
+.badge.FINISHED{background:#e0e7ff;color:#4338ca}
+.badge.CANCELLED{background:#fee2e2;color:#b91c1c}
+@media(prefers-color-scheme:dark){
+ .badge.PENDING{background:#2a3050;color:#aab}.badge.STARTED{background:#14532d;color:#86efac}
+ .badge.ARRIVED{background:#5a3a08;color:#fcd34d}.badge.FINISHED{background:#312e81;color:#c7d2fe}
+ .badge.CANCELLED{background:#5b1a1a;color:#fca5a5}}
+.counter{background:var(--accent);color:#fff;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700}
+.empty{color:var(--muted);text-align:center;padding:36px 12px}
+.notif{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);align-items:flex-start}
+.notif:last-child{border-bottom:0}
+.notif.unread{background:var(--accent-soft)}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:0 0 10px;background:var(--c,var(--accent))}
+.notif .t{font-weight:700}
+.notif .m{color:var(--text);opacity:.85}
+.notif .meta{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:11px}
+.notif .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.notif .body{flex:1;min-width:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.sel td{background:var(--accent-soft)}
+tr.clickable{cursor:pointer}
+.tablewrap{overflow-x:auto}
+#map{height:380px;border-radius:0 0 var(--radius) var(--radius);z-index:0}
+.drv{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 2px var(--accent),0 2px 6px rgba(0,0,0,.35)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+.hist{max-height:220px;overflow:auto;font-size:13px}
+.hist div{display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px dashed var(--line)}
+.hist div span:first-child{color:var(--muted);flex:0 0 74px}
+.hist div span:nth-child(2){flex:1}
+.hide{display:none!important}
+dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--text);padding:0;width:min(520px,94vw)}
+dialog::backdrop{background:rgba(10,12,25,.5)}
+dialog form{padding:18px;display:grid;gap:12px}
+dialog h3{margin:0}
+.checks{display:flex;gap:16px}
+.checks label{display:flex;gap:6px;align-items:center;margin:0;font-size:14px;font-weight:500;color:var(--text)}
+.checks input{width:auto}
+#toasts{position:fixed;right:16px;bottom:16px;display:grid;gap:8px;z-index:3000}
+.toast{background:#1f2937;color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;max-width:340px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.toast.err{background:#b91c1c} .toast.ok{background:#15803d}
+.hint{font-size:12px;color:var(--muted)}
+.leaflet-container{font:inherit}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">Smart<span>Ride</span> · Notifications &amp; Tracking</div>
+    <nav>
+      <button id="tabN" class="active" data-tab="notifs">Notifications</button>
+      <button id="tabT" data-tab="tracking">Tracking</button>
+    </nav>
+    <div class="sp"></div>
+    <div id="apiState"><i></i><span>API…</span></div>
+  </div>
+</header>
+
+<main>
+<!-- ============================ NOTIFICATIONS ============================ -->
+<section id="notifs" class="grid">
+  <div class="card">
+    <div class="card-h">
+      <h2>Notifications</h2><span id="unread" class="counter hide">0</span>
+      <div class="sp" style="flex:1"></div>
+      <button class="btn" id="readAll">Tout marquer comme lu</button>
+      <button class="btn pri" id="newNotif">+ Nouvelle notification</button>
+    </div>
+    <div class="card-b" style="border-bottom:1px solid var(--line)">
+      <div class="row">
+        <div><label for="fUser">Utilisateur (userId)</label><input id="fUser" placeholder="ex : u78"></div>
+        <div><label for="fRead">Statut</label>
+          <select id="fRead"><option value="">Toutes</option><option value="false">Non lues</option><option value="true">Lues</option></select></div>
+        <div><label for="fType">Type</label><select id="fType"><option value="">Tous</option></select></div>
+        <div class="auto"><button class="btn" id="refreshN">Actualiser</button></div>
+      </div>
+      <p class="hint" style="margin:10px 0 0">La liste se rafraîchit automatiquement toutes les 5 secondes.</p>
+    </div>
+    <div id="nList"><div class="empty">Chargement…</div></div>
+  </div>
+</section>
+
+<!-- ============================== TRACKING ============================== -->
+<section id="tracking" class="grid hide">
+  <div class="grid cols">
+    <div class="grid" style="align-content:start">
+      <div class="card">
+        <div class="card-h"><h2 id="mapTitle">Carte</h2><span id="mapStatus"></span></div>
+        <div id="map"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Sessions de tracking</h2><div style="flex:1"></div>
+          <button class="btn" id="refreshT">Actualiser</button></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Trajet</th><th>Conducteur</th><th>Statut</th><th>Dernière position</th><th></th></tr></thead>
+            <tbody id="sList"><tr><td colspan="5" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="align-content:start">
+      <div class="card">
+        <div class="card-h"><h2>Nouvelle session</h2></div>
+        <form id="sessionForm" class="card-b" style="display:grid;gap:10px">
+          <div><label for="sTrip">Trajet (tripId)</label><input id="sTrip" required placeholder="ex : t123"></div>
+          <div><label for="sDriver">Conducteur (driverId)</label><input id="sDriver" required placeholder="ex : u45"></div>
+          <button class="btn pri">Créer la session</button>
+        </form>
+      </div>
+
+      <div class="card" id="ctrl">
+        <div class="card-h"><h2 id="ctrlTitle">Trajet sélectionné</h2></div>
+        <div class="card-b" style="display:grid;gap:14px">
+          <div id="noSel" class="empty" style="padding:10px">Sélectionne une session dans le tableau.</div>
+          <div id="selBox" class="hide" style="display:grid;gap:14px">
+            <dl class="kv" id="selInfo"></dl>
+            <div>
+              <label>Changer le statut</label>
+              <div class="row" style="gap:6px">
+                <button class="btn sm" data-st="STARTED">Démarrer</button>
+                <button class="btn sm" data-st="ARRIVED">Arrivé</button>
+                <button class="btn sm" data-st="FINISHED">Terminer</button>
+                <button class="btn sm bad" data-st="CANCELLED">Annuler</button>
+              </div>
+            </div>
+            <div>
+              <label>ETA (minutes à partir de maintenant)</label>
+              <div class="row"><input id="etaMin" type="number" min="1" value="45"><div class="auto"><button class="btn sm" id="setEta">Définir l'ETA</button></div></div>
+            </div>
+            <form id="locForm" style="display:grid;gap:8px">
+              <label>Envoyer une position</label>
+              <div class="row">
+                <div><input id="lLat" type="number" step="any" placeholder="Latitude" value="36.8065" required></div>
+                <div><input id="lLng" type="number" step="any" placeholder="Longitude" value="10.1815" required></div>
+              </div>
+              <div class="row">
+                <div><input id="lSpeed" type="number" min="0" step="any" placeholder="Vitesse km/h" value="40"></div>
+                <div><input id="lHead" type="number" min="0" max="360" step="any" placeholder="Cap (°)" value="90"></div>
+                <div class="auto"><button class="btn pri sm">Envoyer</button></div>
+              </div>
+            </form>
+            <div>
+              <label>Simulation du conducteur (Tunis → Sousse)</label>
+              <div class="row" style="gap:6px">
+                <button class="btn pri sm" id="simStart">Lancer la simulation</button>
+                <button class="btn sm" id="simStop" disabled>Arrêter</button>
+              </div>
+              <p class="hint" style="margin:6px 0 0" id="simInfo">Démarre la session si besoin puis envoie une position toutes les 1,5 s.</p>
+            </div>
+            <div>
+              <label>Dernières positions</label>
+              <div class="hist" id="hist"></div>
+            </div>
+            <button class="btn bad" id="delSession">Supprimer la session et son historique</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================ DIALOG notification ============================ -->
+<dialog id="nDialog">
+  <form method="dialog" id="nForm">
+    <h3 id="nDlgTitle">Nouvelle notification</h3>
+    <div class="row">
+      <div><label for="nUser">Utilisateur (userId)</label><input id="nUser" required></div>
+      <div><label for="nType">Type</label><select id="nType" required></select></div>
+    </div>
+    <div><label for="nTitle">Titre</label><input id="nTitle" required maxlength="150"></div>
+    <div><label for="nMsg">Message</label><textarea id="nMsg" required maxlength="1000"></textarea></div>
+    <div><label>Canaux</label>
+      <div class="checks">
+        <label><input type="checkbox" name="ch" value="in_app" checked> In-app</label>
+        <label><input type="checkbox" name="ch" value="email"> Email</label>
+        <label><input type="checkbox" name="ch" value="push"> Push</label>
+      </div></div>
+    <div><label for="nData">Données (JSON, optionnel)</label><textarea id="nData" placeholder='{"bookingId":"b9","tripId":"t123"}'></textarea></div>
+    <div class="row" style="justify-content:flex-end">
+      <div class="auto"><button type="button" class="btn" id="nCancel">Annuler</button></div>
+      <div class="auto"><button class="btn pri" id="nSave" value="save">Enregistrer</button></div>
+    </div>
+  </form>
+</dialog>
+
+<div id="toasts"></div>
+
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script>
+"use strict";
+/* ------------------------------------------------------------------ */
+/*  Utilitaires                                                        */
+/* ------------------------------------------------------------------ */
+const API = "/api";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (d) => d ? new Date(d).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "medium" }) : "—";
+const hhmm = (d) => d ? new Date(d).toLocaleTimeString("fr-FR") : "—";
+// DATE_ATOM attendu par Symfony : 2026-10-23T10:00:00+00:00 (pas de millisecondes, pas de "Z")
+const atom = (d) => d.toISOString().replace(/\.\d{3}Z$/, "+00:00");
+const store = {
+  get(k, def) { try { return localStorage.getItem(k) ?? def; } catch { return def; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+
+const TYPES = {
+  BOOKING_CONFIRMED: ["Réservation confirmée", "#16a34a"],
+  BOOKING_REJECTED:  ["Réservation refusée", "#dc2626"],
+  PAYMENT_SUCCESS:   ["Paiement reçu", "#0891b2"],
+  DRIVER_NEARBY:     ["Conducteur proche", "#d97706"],
+  DRIVER_ARRIVED:    ["Conducteur arrivé", "#ca8a04"],
+  NEW_MESSAGE:       ["Nouveau message", "#4f46e5"],
+  TRIP_CANCELLED:    ["Trajet annulé", "#b91c1c"],
+  RATING_REQUEST:    ["Demande d'évaluation", "#9333ea"],
+};
+const STATUS = { PENDING: "En attente", STARTED: "En cours", ARRIVED: "Arrivé", FINISHED: "Terminé", CANCELLED: "Annulé" };
+
+function toast(msg, kind = "") {
+  const t = document.createElement("div");
+  t.className = "toast " + kind;
+  t.textContent = msg;
+  $("#toasts").append(t);
+  setTimeout(() => t.remove(), 4500);
+}
+
+class ApiError extends Error { constructor(msg, status) { super(msg); this.status = status; } }
+
+async function api(path, { method = "GET", body } = {}) {
+  let res;
+  try {
+    res = await fetch(API + path, {
+      method,
+      headers: { "Accept": "application/json", ...(body !== undefined ? { "Content-Type": "application/json" } : {}) },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (e) {
+    setApi(false);
+    throw new ApiError("API injoignable (le serveur Symfony est-il démarré ?)", 0);
+  }
+  setApi(true);
+  if (res.status === 204) return null;
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    let msg = data?.detail || data?.title || data?.error || ("Erreur " + res.status);
+    if (data?.violations?.length) msg = data.violations.map(v => `${v.propertyPath || "?"} : ${v.title || v.message}`).join(" · ");
+    throw new ApiError(msg, res.status);
+  }
+  return data;
+}
+const safe = (fn) => async (...a) => { try { return await fn(...a); } catch (e) { toast(e.message, "err"); } };
+
+function setApi(ok) {
+  const el = $("#apiState");
+  el.className = ok ? "ok" : "ko";
+  $("span", el).textContent = ok ? "API connectée" : "API injoignable";
+}
+
+/* ------------------------------------------------------------------ */
+/*  Onglets                                                            */
+/* ------------------------------------------------------------------ */
+let currentTab = "notifs";
+function showTab(name) {
+  currentTab = name;
+  $("#notifs").classList.toggle("hide", name !== "notifs");
+  $("#tracking").classList.toggle("hide", name !== "tracking");
+  $("#tabN").classList.toggle("active", name === "notifs");
+  $("#tabT").classList.toggle("active", name === "tracking");
+  store.set("tab", name);
+  if (name === "tracking") { initMap(); setTimeout(() => map.invalidateSize(), 50); loadSessions(); }
+  else loadNotifs();
+}
+$$("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+/* ------------------------------------------------------------------ */
+/*  NOTIFICATIONS — CRUD                                               */
+/* ------------------------------------------------------------------ */
+for (const [k, [label]] of Object.entries(TYPES)) {
+  $("#fType").insertAdjacentHTML("beforeend", `<option value="${k}">${esc(label)}</option>`);
+  $("#nType").insertAdjacentHTML("beforeend", `<option value="${k}">${esc(label)}</option>`);
+}
+$("#fUser").value = store.get("userId", "u78");
+
+async function loadNotifs() {
+  const user = $("#fUser").value.trim();
+  store.set("userId", user);
+  const q = new URLSearchParams({ limit: "50" });
+  if (user) q.set("userId", user);
+  if ($("#fRead").value) q.set("read", $("#fRead").value);
+  if ($("#fType").value) q.set("type", $("#fType").value);
+  try {
+    const [list, count] = await Promise.all([
+      api("/notifications?" + q),
+      user ? api("/notifications/unread-count?userId=" + encodeURIComponent(user)) : null,
+    ]);
+    renderNotifs(list.items);
+    const c = $("#unread");
+    if (count && count.unread > 0) { c.textContent = count.unread + " non lue" + (count.unread > 1 ? "s" : ""); c.classList.remove("hide"); }
+    else c.classList.add("hide");
+  } catch (e) { $("#nList").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+function renderNotifs(items) {
+  if (!items.length) { $("#nList").innerHTML = `<div class="empty">Aucune notification.</div>`; return; }
+  $("#nList").innerHTML = items.map(n => {
+    const [label, color] = TYPES[n.type] || [n.type, "#4f46e5"];
+    const data = n.data && Object.keys(n.data).length ? `<span class="chip" title="${esc(JSON.stringify(n.data))}">données</span>` : "";
+    return `<div class="notif ${n.read ? "" : "unread"}" data-id="${esc(n.id)}" style="--c:${color}">
+      <div class="dot"></div>
+      <div class="body">
+        <div class="t">${esc(n.title)}</div>
+        <div class="m">${esc(n.message)}</div>
+        <div class="meta"><span>${esc(label)}</span><span>${esc(n.userId)}</span><span>${fmt(n.createdAt)}</span>
+          ${n.channels.map(c => `<span class="chip">${esc(c)}</span>`).join("")}${data}</div>
+      </div>
+      <div class="acts">
+        <button class="btn sm" data-a="toggle">${n.read ? "Marquer non lue" : "Marquer lue"}</button>
+        <button class="btn sm" data-a="edit">Modifier</button>
+        <button class="btn sm bad" data-a="del">Supprimer</button>
+      </div></div>`;
+  }).join("");
+  $("#nList")._items = Object.fromEntries(items.map(n => [n.id, n]));
+}
+
+$("#nList").addEventListener("click", safe(async (e) => {
+  const btn = e.target.closest("button[data-a]"); if (!btn) return;
+  const id = btn.closest(".notif").dataset.id;
+  const n = $("#nList")._items[id];
+  if (btn.dataset.a === "toggle") { await api("/notifications/" + id, { method: "PATCH", body: { read: !n.read } }); }
+  if (btn.dataset.a === "del") { if (!confirm("Supprimer cette notification ?")) return; await api("/notifications/" + id, { method: "DELETE" }); toast("Notification supprimée", "ok"); }
+  if (btn.dataset.a === "edit") { openDialog(n); return; }
+  loadNotifs();
+}));
+
+$("#readAll").addEventListener("click", safe(async () => {
+  const user = $("#fUser").value.trim();
+  if (!user) return toast("Renseigne un userId", "err");
+  const r = await api("/notifications/read-all?userId=" + encodeURIComponent(user), { method: "PATCH" });
+  toast(r.updated + " notification(s) marquée(s) comme lue(s)", "ok");
+  loadNotifs();
+}));
+["fRead", "fType"].forEach(id => $("#" + id).addEventListener("change", loadNotifs));
+$("#fUser").addEventListener("change", loadNotifs);
+$("#refreshN").addEventListener("click", loadNotifs);
+
+/* --- dialogue création / modification --- */
+let editingId = null;
+function openDialog(n) {
+  editingId = n ? n.id : null;
+  $("#nDlgTitle").textContent = n ? "Modifier la notification" : "Nouvelle notification";
+  $("#nUser").value = n ? n.userId : ($("#fUser").value || "u78");
+  $("#nType").value = n ? n.type : "BOOKING_CONFIRMED";
+  $("#nUser").disabled = $("#nType").disabled = !!n;       // non modifiables via l'API (PATCH)
+  $("#nTitle").value = n ? n.title : "";
+  $("#nMsg").value = n ? n.message : "";
+  $("#nData").value = n && Object.keys(n.data || {}).length ? JSON.stringify(n.data) : "";
+  $$("input[name=ch]").forEach(c => c.checked = n ? n.channels.includes(c.value) : c.value === "in_app");
+  $("#nDialog").showModal();
+}
+$("#newNotif").addEventListener("click", () => openDialog(null));
+$("#nCancel").addEventListener("click", () => $("#nDialog").close());
+$("#nForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  let data = {};
+  const raw = $("#nData").value.trim();
+  if (raw) { try { data = JSON.parse(raw); if (typeof data !== "object" || Array.isArray(data)) throw 0; } catch { return toast("Le champ « Données » doit être un objet JSON valide", "err"); } }
+  const channels = $$("input[name=ch]:checked").map(c => c.value);
+  if (!channels.length) return toast("Choisis au moins un canal", "err");
+  const body = { title: $("#nTitle").value.trim(), message: $("#nMsg").value.trim(), data, channels };
+  try {
+    if (editingId) await api("/notifications/" + editingId, { method: "PATCH", body });
+    else await api("/notifications", { method: "POST", body: { ...body, userId: $("#nUser").value.trim(), type: $("#nType").value } });
+    $("#nDialog").close();
+    toast(editingId ? "Notification modifiée" : "Notification créée", "ok");
+    if (!editingId) $("#fUser").value = $("#nUser").value.trim();
+    loadNotifs();
+  } catch (err) { toast(err.message, "err"); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  TRACKING — sessions                                                */
+/* ------------------------------------------------------------------ */
+let selected = null;      // tripId sélectionné
+let sessions = {};
+
+async function loadSessions() {
+  try {
+    const r = await api("/tracking?limit=100");
+    sessions = Object.fromEntries(r.items.map(s => [s.tripId, s]));
+    renderSessions(r.items);
+    if (selected && sessions[selected]) renderSelected();
+    if (selected && !sessions[selected]) selectTrip(null);
+  } catch (e) { $("#sList").innerHTML = `<tr><td colspan="5" class="empty">${esc(e.message)}</td></tr>`; }
+}
+
+function renderSessions(items) {
+  if (!items.length) { $("#sList").innerHTML = `<tr><td colspan="5" class="empty">Aucune session. Crée-en une à droite.</td></tr>`; return; }
+  $("#sList").innerHTML = items.map(s => {
+    const p = s.lastPosition?.coordinates;
+    return `<tr class="clickable ${s.tripId === selected ? "sel" : ""}" data-trip="${esc(s.tripId)}">
+      <td><b>${esc(s.tripId)}</b></td><td>${esc(s.driverId)}</td>
+      <td><span class="badge ${s.status}">${STATUS[s.status] || s.status}</span></td>
+      <td>${p ? `${p[1].toFixed(4)}, ${p[0].toFixed(4)}` : "—"}</td>
+      <td style="text-align:right"><button class="btn sm">Suivre</button></td></tr>`;
+  }).join("");
+}
+$("#sList").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-trip]"); if (tr) selectTrip(tr.dataset.trip); });
+$("#refreshT").addEventListener("click", loadSessions);
+
+$("#sessionForm").addEventListener("submit", safe(async (e) => {
+  e.preventDefault();
+  const tripId = $("#sTrip").value.trim();
+  await api("/tracking", { method: "POST", body: { tripId, driverId: $("#sDriver").value.trim() } });
+  toast("Session créée", "ok");
+  e.target.reset();
+  await loadSessions();
+  selectTrip(tripId);
+}));
+
+/* ------------------------------------------------------------------ */
+/*  TRACKING — carte & trajet sélectionné                              */
+/* ------------------------------------------------------------------ */
+let map = null, line = null, marker = null, fitted = false, pollTimer = null;
+const TUNIS = [36.8065, 10.1815];
+
+function initMap() {
+  if (map) return;
+  map = L.map("map").setView(TUNIS, 9);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+  line = L.polyline([], { color: "#4f46e5", weight: 4, opacity: .85 }).addTo(map);
+  marker = L.marker(TUNIS, { icon: L.divIcon({ className: "", html: '<div class="drv"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) });
+}
+
+function selectTrip(tripId) {
+  selected = tripId; fitted = false;
+  stopSim();
+  clearInterval(pollTimer);
+  $$("#sList tr").forEach(tr => tr.classList.toggle("sel", tr.dataset.trip === tripId));
+  if (!tripId) { $("#noSel").classList.remove("hide"); $("#selBox").classList.add("hide"); $("#mapTitle").textContent = "Carte"; $("#mapStatus").innerHTML = ""; if (map) { line.setLatLngs([]); marker.remove(); } return; }
+  $("#noSel").classList.add("hide"); $("#selBox").classList.remove("hide");
+  renderSelected();
+  loadTrip();
+  pollTimer = setInterval(() => { if (currentTab === "tracking") { loadTrip(); loadSessions(); } }, 3000);
+}
+
+function renderSelected() {
+  const s = sessions[selected]; if (!s) return;
+  $("#mapTitle").textContent = "Trajet " + s.tripId;
+  $("#mapStatus").innerHTML = `<span class="badge ${s.status}">${STATUS[s.status]}</span>`;
+  $("#selInfo").innerHTML = `
+    <dt>Conducteur</dt><dd>${esc(s.driverId)}</dd>
+    <dt>Statut</dt><dd>${STATUS[s.status]}</dd>
+    <dt>Démarré</dt><dd>${fmt(s.startedAt)}</dd>
+    <dt>Terminé</dt><dd>${fmt(s.endedAt)}</dd>
+    <dt>ETA</dt><dd>${s.eta ? hhmm(s.eta) : "—"}</dd>`;
+}
+
+async function loadTrip() {
+  if (!selected) return;
+  const trip = selected;
+  try {
+    const pts = await api(`/tracking/${encodeURIComponent(trip)}/locations?limit=1000`);
+    if (trip !== selected) return;
+    drawTrip(pts);
+  } catch (e) { if (e.status !== 404) toast(e.message, "err"); }
+}
+
+function drawTrip(pts) {
+  const ll = pts.map(p => [p.latitude, p.longitude]);
+  line.setLatLngs(ll);
+  if (ll.length) {
+    marker.setLatLng(ll[ll.length - 1]).addTo(map);
+    if (!fitted) { map.fitBounds(L.latLngBounds(ll).pad(.3), { maxZoom: 14 }); fitted = true; }
+  } else marker.remove();
+  const last = pts.slice(-12).reverse();
+  $("#hist").innerHTML = last.length ? last.map(p =>
+    `<div data-id="${esc(p.id)}"><span>${hhmm(p.timestamp)}</span><span>${p.latitude.toFixed(4)}, ${p.longitude.toFixed(4)}${p.speed != null ? " · " + Math.round(p.speed) + " km/h" : ""}</span>
+     <button class="btn sm bad" data-del="${esc(p.id)}">×</button></div>`).join("")
+    : `<span class="hint">Aucune position enregistrée.</span>`;
+}
+
+$("#hist").addEventListener("click", safe(async (e) => {
+  const b = e.target.closest("button[data-del]"); if (!b) return;
+  await api(`/tracking/${encodeURIComponent(selected)}/locations/${b.dataset.del}`, { method: "DELETE" });
+  loadTrip(); loadSessions();
+}));
+
+$$("[data-st]").forEach(b => b.addEventListener("click", safe(async () => {
+  if (!selected) return;
+  await api("/tracking/" + encodeURIComponent(selected), { method: "PATCH", body: { status: b.dataset.st } });
+  toast("Statut : " + STATUS[b.dataset.st], "ok");
+  await loadSessions();
+})));
+
+$("#setEta").addEventListener("click", safe(async () => {
+  const m = Number($("#etaMin").value);
+  if (!(m > 0)) return toast("Minutes invalides", "err");
+  await api("/tracking/" + encodeURIComponent(selected), { method: "PATCH", body: { eta: atom(new Date(Date.now() + m * 60000)) } });
+  toast("ETA mise à jour", "ok");
+  await loadSessions();
+}));
+
+async function sendLocation(lat, lng, speed, heading) {
+  const body = { latitude: lat, longitude: lng };
+  if (Number.isFinite(speed)) body.speed = speed;
+  if (Number.isFinite(heading)) body.heading = heading;
+  return api(`/tracking/${encodeURIComponent(selected)}/locations`, { method: "POST", body });
+}
+$("#locForm").addEventListener("submit", safe(async (e) => {
+  e.preventDefault();
+  const num = (id) => $(id).value === "" ? NaN : Number($(id).value);
+  await sendLocation(num("#lLat"), num("#lLng"), num("#lSpeed"), num("#lHead"));
+  toast("Position envoyée", "ok");
+  loadTrip(); loadSessions();
+}));
+
+$("#delSession").addEventListener("click", safe(async () => {
+  if (!confirm("Supprimer la session " + selected + " et toutes ses positions ?")) return;
+  await api("/tracking/" + encodeURIComponent(selected), { method: "DELETE" });
+  toast("Session supprimée", "ok");
+  selectTrip(null);
+  loadSessions();
+}));
+
+/* ------------------------------------------------------------------ */
+/*  Simulation du conducteur (Tunis → Sousse)                          */
+/* ------------------------------------------------------------------ */
+const ROUTE = [[36.8065, 10.1815], [36.7690, 10.2400], [36.7200, 10.3100], [36.6400, 10.3700],
+               [36.5400, 10.4200], [36.4300, 10.4800], [36.3200, 10.5300], [36.1400, 10.5900],
+               [35.9500, 10.5800], [35.8250, 10.6370]];
+function interpolate(route, perLeg = 8) {
+  const out = [];
+  for (let i = 0; i < route.length - 1; i++)
+    for (let k = 0; k < perLeg; k++) {
+      const t = k / perLeg;
+      out.push([route[i][0] + (route[i + 1][0] - route[i][0]) * t, route[i][1] + (route[i + 1][1] - route[i][1]) * t]);
+    }
+  out.push(route[route.length - 1]);
+  return out;
+}
+const bearing = (a, b) => (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI + 360) % 360;
+let simTimer = null;
+function stopSim(msg) {
+  clearInterval(simTimer); simTimer = null;
+  $("#simStart").disabled = false; $("#simStop").disabled = true;
+  if (msg) $("#simInfo").textContent = msg;
+}
+$("#simStart").addEventListener("click", safe(async () => {
+  if (!selected || simTimer) return;
+  const s = sessions[selected];
+  if (s.status !== "STARTED") {
+    await api("/tracking/" + encodeURIComponent(selected), { method: "PATCH", body: { status: "STARTED" } });
+    await loadSessions();
+  }
+  const pts = interpolate(ROUTE);
+  let i = 0;
+  const trip = selected;
+  $("#simStart").disabled = true; $("#simStop").disabled = false;
+  simTimer = setInterval(async () => {
+    if (trip !== selected) return stopSim();
+    const p = pts[i], nxt = pts[Math.min(i + 1, pts.length - 1)];
+    try {
+      await sendLocation(+p[0].toFixed(5), +p[1].toFixed(5), 70 + Math.round(Math.random() * 30), Math.round(bearing(p, nxt)));
+      $("#simInfo").textContent = `Simulation : étape ${i + 1} / ${pts.length}`;
+      loadTrip();
+    } catch (e) { stopSim(); return toast(e.message, "err"); }
+    if (++i >= pts.length) {
+      stopSim("Simulation terminée : arrivé à destination.");
+      try { await api("/tracking/" + encodeURIComponent(trip), { method: "PATCH", body: { status: "ARRIVED" } }); loadSessions(); } catch {}
+    }
+  }, 1500);
+}));
+$("#simStop").addEventListener("click", () => stopSim("Simulation arrêtée."));
+
+/* ------------------------------------------------------------------ */
+/*  Démarrage                                                          */
+/* ------------------------------------------------------------------ */
+setInterval(() => { if (currentTab === "notifs" && !$("#nDialog").open) loadNotifs(); }, 5000);
+showTab(store.get("tab", "notifs") === "tracking" ? "tracking" : "notifs");
+</script>
+</body>
+</html>

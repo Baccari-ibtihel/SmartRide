@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
-  # Infrastructure
+  # ============================================
+  # 1. Service Discovery (Netflix Eureka)
+  # ============================================
   discovery-server:
     build: ./discovery-server
     container_name: smartride-discovery-server
@@ -9,54 +11,108 @@ services:
       - "8761:8761"
     networks:
       - smartride-net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
+  # ============================================
+  # 1.1 Centralized Config Server (Spring Cloud Config)
+  # ============================================
   config-server:
     build: ./config-server
     container_name: smartride-config-server
     ports:
       - "8888:8888"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - EUREKA_SERVER=http://discovery-server:8761/eureka/
     depends_on:
-      - discovery-server
+      discovery-server:
+        condition: service_healthy
     networks:
       - smartride-net
 
+  # ============================================
+  # 2. Identity & Access Management (Keycloak)
+  # ============================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.7
+    container_name: smartride-keycloak
+    command: start-dev --import-realm
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "8180:8080"
+    networks:
+      - smartride-net
+
+  # ============================================
+  # 3. Message Broker (RabbitMQ)
+  # ============================================
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: smartride-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management Web UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - smartride-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # 4. API Gateway (Spring Cloud Gateway)
+  # ============================================
   api-gateway:
     build: ./api-gateway
     container_name: smartride-api-gateway
     ports:
       - "8080:8080"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - EUREKA_SERVER=http://discovery-server:8761/eureka/
+      - KEYCLOAK_URL=http://keycloak:8080
     depends_on:
-      - discovery-server
-      - config-server
+      discovery-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
     networks:
       - smartride-net
 
-  # Databases
-  postgres-user:
-    image: postgres:15-alpine
+  # ============================================
+  # 5. Databases
+  # ============================================
+  mysql-user:
+    image: mysql:8.0
     container_name: smartride-db-user
     environment:
-      POSTGRES_DB: user_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: smartride_users
     ports:
-      - "5431:5432"
+      - "3307:3306"
     networks:
       - smartride-net
 
-  postgres-trip:
-    image: postgres:15-alpine
-    container_name: smartride-db-trip
+  mysql-dashboard:
+    image: mysql:8.0
+    container_name: smartride-db-dashboard
     environment:
-      POSTGRES_DB: trip_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: smartride_dashboard
     ports:
-      - "5432:5432"
+      - "3308:3306"
     networks:
       - smartride-net
 
@@ -72,20 +128,8 @@ services:
     networks:
       - smartride-net
 
-  postgres-payment:
-    image: postgres:15-alpine
-    container_name: smartride-db-payment
-    environment:
-      POSTGRES_DB: payment_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5434:5432"
-    networks:
-      - smartride-net
-
   mongo-chat:
-    image: mongo:6.0
+    image: mongo:7
     container_name: smartride-db-chat
     ports:
       - "27017:27017"
@@ -100,98 +144,165 @@ services:
     networks:
       - smartride-net
 
-  # Microservices
+  # ============================================
+  # 6. Microservices
+  # ============================================
+
+  # Module Dashboard (Java / Spring Boot - Ibtihel)
+  dashboard-service:
+    build: ./dashboard-service
+    container_name: smartride-dashboard-service
+    ports:
+      - "8088:8088"
+    environment:
+      - EUREKA_SERVER=http://discovery-server:8761/eureka/
+      - DB_HOST=mysql-dashboard
+      - DB_PORT=3306
+      - DB_NAME=smartride_dashboard
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - KEYCLOAK_URL=http://keycloak:8080
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mysql-dashboard:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - smartride-net
+
+  # Module User (Java / Spring Boot)
   user-service:
     build: ./user-service
     container_name: smartride-user-service
     ports:
       - "8081:8081"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/user_db
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-user:3306/smartride_users?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
     depends_on:
-      - postgres-user
+      - mysql-user
       - discovery-server
     networks:
       - smartride-net
 
+  # Module Trip (Go / Golang - Aymen)
   trip-service:
     build: ./trip-service
     container_name: smartride-trip-service
     ports:
       - "8082:8082"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-trip:5432/trip_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-    depends_on:
-      - postgres-trip
-      - discovery-server
-    networks:
-      - smartride-net
-
-  booking-service:
-    build: ./booking-service
-    container_name: smartride-booking-service
-    ports:
-      - "8083:8083"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-booking:5432/booking_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SERVER_PORT=8082
+      - DB_HOST=postgres-booking
+      - DB_PORT=5432
+      - DB_NAME=booking_db
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - MIGRATIONS_DIR=migrations
     depends_on:
       - postgres-booking
       - discovery-server
     networks:
       - smartride-net
 
+  # Module Booking (Node.js / Express - Ghofran)
+  booking-service:
+    build: ./booking-service
+    container_name: smartride-booking-service
+    ports:
+      - "8083:3003"
+    environment:
+      - PORT=3003
+      - DATABASE_URL=postgres://postgres:password@postgres-booking:5432/booking_db
+      - APP_HOST=booking-service
+      - APP_NAME=BOOKING-SERVICE
+      - EUREKA_HOST=discovery-server
+      - EUREKA_PORT=8761
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - postgres-booking
+      - discovery-server
+      - rabbitmq
+    networks:
+      - smartride-net
+
+  # Module Payment (Python / FastAPI - Mahdi)
   payment-service:
     build: ./payment-service
     container_name: smartride-payment-service
     ports:
-      - "8084:8084"
+      - "8084:8004"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - MONGO_URI=mongodb://mongo-chat:27017
+      - MONGO_DB=smartride_payment
+      - EUREKA_ENABLED=true
+      - EUREKA_SERVER=http://discovery-server:8761/eureka
+      - EUREKA_APP_NAME=payment-service
+      - EUREKA_INSTANCE_HOST=payment-service
+      - EUREKA_INSTANCE_PORT=8004
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
     depends_on:
-      - postgres-payment
+      - mongo-chat
       - discovery-server
+      - rabbitmq
     networks:
       - smartride-net
 
+  # Module Rating & Chat (Java / Spring Boot - Hamza)
   rating-chat-service:
     build: ./rating-chat-service
     container_name: smartride-rating-chat-service
     ports:
       - "8085:8085"
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo-chat:27017/chat_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - DB_HOST=mysql-user
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - EUREKA_URL=http://discovery-server:8761/eureka/
     depends_on:
-      - mongo-chat
+      - mysql-user
       - discovery-server
     networks:
       - smartride-net
 
+  # Module Notification & Tracking (PHP / Symfony - Hafedh)
   notification-tracking-service:
     build: ./notification-tracking-service
     container_name: smartride-notification-tracking-service
     ports:
-      - "8086:8086"
+      - "8086:8000"
     environment:
-      - SPRING_REDIS_HOST=redis-cache
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - MONGODB_URL=mongodb://mongo-chat:27017
+      - SERVICE_HOST=notification-tracking-service
+      - SERVICE_PORT=8000
+      - EUREKA_URL=http://discovery-server:8761/eureka
     depends_on:
-      - redis-cache
+      - mongo-chat
       - discovery-server
+    command: >
+      sh -c "([ -f config/jwt/private.pem ] || php bin/console lexik:jwt:generate-keypair --no-interaction) &&
+             (php bin/console doctrine:mongodb:schema:create || true) &&
+             php -S 0.0.0.0:8000 -t public"
     networks:
       - smartride-net
 
+  # Module Matching IA (Python / FastAPI)
   matching-ia-service:
     build: ./matching-ia-service
     container_name: smartride-matching-ia-service
     ports:
       - "8087:8087"
-    environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
     depends_on:
       - discovery-server
     networks:
