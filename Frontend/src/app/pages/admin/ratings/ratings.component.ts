@@ -120,6 +120,13 @@ interface AdminRating {
             >
               {{ r.status === 'PUBLIE' ? 'Masquer' : 'Approuver' }}
             </button>
+            <button 
+              class="btn btn-sm btn-outline text-danger" 
+              (click)="deleteRating(r)"
+              title="Supprimer définitivement l'avis"
+            >
+              🗑️ Supprimer
+            </button>
           </div>
         </div>
 
@@ -226,5 +233,11 @@ export class AdminRatingsComponent {
 
   togglePublish(r: AdminRating) {
     r.status = r.status === 'PUBLIE' ? 'MASQUE' : 'PUBLIE';
+  }
+
+  deleteRating(r: AdminRating) {
+    if (confirm(`Supprimer définitivement l'avis de ${r.author} ?`)) {
+      this.ratings = this.ratings.filter(item => item.id !== r.id);
+    }
   }
 }

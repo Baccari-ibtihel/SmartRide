@@ -39,6 +39,9 @@ import { User } from '../../core/models/user.model';
           <a routerLink="/user/bookings" routerLinkActive="active" (click)="menuOpen=false" *ngIf="currentUser && currentUser.role === 'PASSAGER'">
             📋 Mes Réservations
           </a>
+          <a routerLink="/user/payments" routerLinkActive="active" (click)="menuOpen=false" *ngIf="currentUser && currentUser.role === 'PASSAGER'">
+            💳 Mes Paiements
+          </a>
           <a routerLink="/user/tracking/0" routerLinkActive="active" (click)="menuOpen=false" *ngIf="currentUser && currentUser.role === 'PASSAGER'" class="track-nav-link">
             📍 Suivi GPS
           </a>
@@ -90,6 +93,7 @@ import { User } from '../../core/models/user.model';
                 <a routerLink="/user/my-trips" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'CONDUCTEUR'">📋 Mes Trajets publiés</a>
                 <a routerLink="/user/search" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'PASSAGER'">🔍 Rechercher un trajet</a>
                 <a routerLink="/user/bookings" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'PASSAGER'">📋 Mes Réservations</a>
+                <a routerLink="/user/payments" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'PASSAGER'">💳 Mes Paiements & Factures</a>
                 <a routerLink="/user/tracking/0" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'PASSAGER'">📍 Suivi GPS en direct</a>
                 <a routerLink="/admin/dashboard" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'ADMIN'" class="text-accent fw-700">
                   ⚙️ Espace Administration

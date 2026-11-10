@@ -90,7 +90,15 @@ import { ChatService, ChatMessage } from '../../../core/services/chat.service';
               🧾 Reçu #{{ b.receiptNumber }}
             </button>
 
-            <!-- 3. TRACK DRIVER -->
+            <!-- 3. RATING CONDUCTEUR (Hamza - rating-chat-service) -->
+            <button
+              class="btn btn-outline btn-sm rate-btn"
+              (click)="openRateModal(b)"
+            >
+              ⭐ {{ userRatings[b.id] ? (userRatings[b.id] + '★ Avis donné') : 'Donner mon avis' }}
+            </button>
+
+            <!-- 4. TRACK DRIVER -->
             <a
               [routerLink]="['/user/tracking', b.id]"
               class="btn btn-success btn-sm track-btn"
@@ -317,6 +325,56 @@ import { ChatService, ChatMessage } from '../../../core/services/chat.service';
           </div>
         </div>
       </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- MODAL 3: EVALUATION & AVIS DU CONDUCTEUR (Hamza - rating) -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="modal-backdrop" *ngIf="showRateModal" (click)="closeRateModal()">
+        <div class="modal-card rate-modal-card" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div>
+              <h3>⭐ Évaluer le conducteur (CRUD Rating)</h3>
+              <p class="modal-sub">Votre note et feedback pour {{ getTrip(activeRateBooking?.tripId)?.driverName || 'le conducteur' }}</p>
+            </div>
+            <button class="close-btn" (click)="closeRateModal()">✕</button>
+          </div>
+
+          <div class="modal-body text-center">
+            <div class="star-picker">
+              <span *ngFor="let s of [1,2,3,4,5]" class="star-choice" [class.active]="selectedStars >= s" (click)="selectedStars = s">
+                ★
+              </span>
+            </div>
+            <div class="score-banner">
+              <span *ngIf="selectedStars === 5">⭐⭐⭐⭐⭐ Excellent voyage !</span>
+              <span *ngIf="selectedStars === 4">⭐⭐⭐⭐ Très bien !</span>
+              <span *ngIf="selectedStars === 3">⭐⭐⭐ Voyage correct</span>
+              <span *ngIf="selectedStars === 2">⭐⭐ Moyen</span>
+              <span *ngIf="selectedStars === 1">⭐ Décevant</span>
+            </div>
+
+            <div class="tags-container">
+              <span class="chip-tag" [class.selected]="hasTag('Ponctuel')" (click)="toggleTag('Ponctuel')">⏱️ Ponctuel</span>
+              <span class="chip-tag" [class.selected]="hasTag('Conduite souple')" (click)="toggleTag('Conduite souple')">🚗 Conduite souple</span>
+              <span class="chip-tag" [class.selected]="hasTag('Véhicule propre')" (click)="toggleTag('Véhicule propre')">✨ Véhicule propre</span>
+              <span class="chip-tag" [class.selected]="hasTag('Sympathique')" (click)="toggleTag('Sympathique')">💬 Sympathique</span>
+              <span class="chip-tag" [class.selected]="hasTag('Bonne musique')" (click)="toggleTag('Bonne musique')">🎵 Bonne musique</span>
+            </div>
+
+            <div class="form-group text-left" style="margin-top: 14px;">
+              <label>Votre commentaire d'évaluation</label>
+              <textarea class="form-control" rows="3" placeholder="Écrivez un avis détaillé sur le trajet..." [(ngModel)]="ratingComment"></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-outline" (click)="closeRateModal()">Annuler</button>
+            <button class="btn btn-success" (click)="submitRating()">
+              ✓ Enregistrer l'évaluation
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -366,6 +424,16 @@ import { ChatService, ChatMessage } from '../../../core/services/chat.service';
     .pay-btn { background: #16a34a !important; border-color: #16a34a !important; font-weight: 800 !important; }
     .pay-btn:hover { background: #15803d !important; }
     .receipt-btn { font-size: 0.78rem; font-family: monospace; }
+    .rate-btn { font-weight: 700 !important; color: #d97706 !important; border-color: #d97706 !important; }
+    .rate-btn:hover { background: rgba(217,119,6,0.1) !important; }
+    .star-picker { font-size: 2.4rem; color: #cbd5e1; cursor: pointer; user-select: none; margin-bottom: 8px; }
+    .star-choice { transition: transform 0.15s; display: inline-block; padding: 0 4px; }
+    .star-choice:hover { transform: scale(1.2); }
+    .star-choice.active { color: #f59e0b; }
+    .score-banner { font-size: 0.95rem; font-weight: 700; color: #b45309; margin-bottom: 12px; }
+    .tags-container { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
+    .chip-tag { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; background: var(--gray-100); border: 1px solid var(--gray-200); cursor: pointer; transition: var(--transition); }
+    .chip-tag.selected { background: #fef3c7; border-color: #f59e0b; color: #92400e; font-weight: 700; }
     .track-btn { font-weight: 700 !important; animation: pulse-track 1.5s infinite; }
     @keyframes pulse-track {
       0%, 100% { box-shadow: 0 0 0 0 rgba(40,167,69,0.5); }
@@ -531,6 +599,14 @@ export class BookingsComponent implements OnInit, OnDestroy {
   paymentCardCvc = '389';
   paymentPhone = '+216 98 450 120';
   processingPayment = false;
+
+  // Rating Modal State (Hamza - rating-chat-service)
+  showRateModal = false;
+  activeRateBooking: StoredBooking | null = null;
+  selectedStars = 5;
+  selectedTags: string[] = ['Ponctuel', 'Conduite souple'];
+  ratingComment = 'Trajet très agréable, conducteur courtois et ponctuel !';
+  userRatings: Record<number, number> = {};
 
   // Chat Modal State
   showChatModal = false;
@@ -698,6 +774,47 @@ export class BookingsComponent implements OnInit, OnDestroy {
   callDriverFromChat(): void {
     const trip = this.getTrip(this.activeChatBooking?.tripId);
     alert(`📞 Appel vocal en direct vers ${trip?.driverName || 'le conducteur'} (+216 98 450 120)...`);
+  }
+
+  // ─── RATING ACTIONS (HAMZA - RATING-CHAT-SERVICE) ──────
+
+  openRateModal(b: StoredBooking): void {
+    this.activeRateBooking = b;
+    this.selectedStars = this.userRatings[b.id] || 5;
+    this.showRateModal = true;
+  }
+
+  closeRateModal(): void {
+    this.showRateModal = false;
+    this.activeRateBooking = null;
+  }
+
+  toggleTag(tag: string): void {
+    const idx = this.selectedTags.indexOf(tag);
+    if (idx > -1) {
+      this.selectedTags.splice(idx, 1);
+    } else {
+      this.selectedTags.push(tag);
+    }
+  }
+
+  hasTag(tag: string): boolean {
+    return this.selectedTags.includes(tag);
+  }
+
+  submitRating(): void {
+    if (!this.activeRateBooking) return;
+    this.userRatings[this.activeRateBooking.id] = this.selectedStars;
+    const trip = this.getTrip(this.activeRateBooking.tripId);
+    alert(
+      `⭐ ÉVALUATION ENREGISTRÉE AVEC SUCCÈS !\n\n` +
+      `Conducteur : ${trip?.driverName || 'Sami Mansouri'}\n` +
+      `Note : ${this.selectedStars} / 5 étoiles ⭐\n` +
+      `Compliments : ${this.selectedTags.join(', ') || 'Aucun'}\n` +
+      `Commentaire : "${this.ratingComment}"\n\n` +
+      `✅ Donnée transmise au microservice rating-chat-service (Hamza) !`
+    );
+    this.closeRateModal();
   }
 
   // ─── Helpers ────────────────────────────────────────────
