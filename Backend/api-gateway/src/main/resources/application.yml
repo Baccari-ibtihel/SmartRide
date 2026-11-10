@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: payment-service
+              uri: lb://payment-service
+              predicates:
+                - Path=/payments,/payments/**
+            - id: payment-health
+              uri: lb://payment-service
+              predicates:
+                - Path=/health
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
