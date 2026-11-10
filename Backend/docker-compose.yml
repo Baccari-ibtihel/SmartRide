@@ -29,9 +29,11 @@ services:
       - "8080:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - TRIP_SERVICE_URL=http://trip-service:8082
     depends_on:
       - discovery-server
       - config-server
+      - trip-service
     networks:
       - smartride-net
 

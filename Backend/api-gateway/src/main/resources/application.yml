@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # trip-service is a Go service and does NOT register in Eureka yet,
+        # so this is a plain URL from an env var.
+        # TODO: switch to lb://trip-service once the Go service registers in Eureka.
+        # No prefix is stripped: trip-service already serves /api/trips/...
+        - id: trip-service
+          uri: ${TRIP_SERVICE_URL:http://trip-service:8082}
+          predicates:
+            - Path=/api/trips/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
