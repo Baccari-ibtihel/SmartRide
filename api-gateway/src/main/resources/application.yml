@@ -1,0 +1,41 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false            # routes explicites ci-dessous
+      globalcors:                   # CORS géré UNE seule fois, ici (pas dans Symfony)
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
+            allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+            allowedHeaders: "*"
+            maxAge: 3600
+      routes:
+        - id: notification-tracking-service
+          uri: lb://NOTIFICATION-TRACKING-SERVICE     # nom enregistré dans Eureka
+          predicates:
+            - Path=/api/notifications/**,/api/tracking/**,/api/health
+        # Exemples pour les autres services de l'équipe (nom = spring.application.name dans Eureka) :
+        # - id: user-service
+        #   uri: lb://USER-SERVICE
+        #   predicates:
+        #     - Path=/api/users/**,/api/auth/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO

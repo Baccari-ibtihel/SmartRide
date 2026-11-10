@@ -1,0 +1,9 @@
+vendor/
+var/
+target/
+node_modules/
+.idea/
+.vscode/
+.env.local
+config/jwt/*.pem
+*.log
