@@ -30,3 +30,8 @@ target/
 target/
 *.iml
 .env
+
+.idea/
+target/
+*.iml
+.env
