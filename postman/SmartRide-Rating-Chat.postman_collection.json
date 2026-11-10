@@ -1,0 +1,1105 @@
+{
+  "info": {
+    "name": "SmartRide - Rating + Chat Service",
+    "description": "Les requetes REST passent par l'API Gateway (port 8080), qui trouve le service via Eureka.\nExecutez les dossiers dans l'ordre (0, 1, 2) ou toute la collection avec Run.\nX-User-Id = l'utilisateur connecte : passager {{passengerId}}, conducteur {{driverId}}.\nChaque requete a des tests automatiques (onglet Test Results).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "service",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "eureka",
+      "value": "http://localhost:8761"
+    },
+    {
+      "key": "passengerId",
+      "value": "1"
+    },
+    {
+      "key": "driverId",
+      "value": "2"
+    },
+    {
+      "key": "tripId",
+      "value": "100"
+    },
+    {
+      "key": "bookingId",
+      "value": "10"
+    },
+    {
+      "key": "ratingId",
+      "value": "1"
+    },
+    {
+      "key": "conversationId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "0 - Infrastructure (Eureka, Gateway)",
+      "item": [
+        {
+          "name": "I1. Eureka : services enregistres",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{eureka}}/eureka/apps",
+            "description": "Verifie que le service et la Gateway sont inscrits dans Eureka avec le statut UP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const apps = body.applications.application.map(a => a.name);",
+                  "pm.test('RATING-CHAT-SERVICE est enregistre', () => pm.expect(apps).to.include('RATING-CHAT-SERVICE'));",
+                  "pm.test('API-GATEWAY est enregistre', () => pm.expect(apps).to.include('API-GATEWAY'));",
+                  "const svc = body.applications.application.find(a => a.name === 'RATING-CHAT-SERVICE');",
+                  "pm.test('Instance UP', () => pm.expect(svc.instance[0].status).to.eql('UP'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "I2. Gateway : routes actives",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/actuator/gateway/routes",
+            "description": "Liste les routes de la Gateway. Les URI commencent par lb:// : la Gateway demande l'adresse a Eureka."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Route REST lb://rating-chat-service', () => pm.expect(body.map(r => r.uri)).to.include('lb://rating-chat-service'));",
+                  "pm.test('Route WebSocket lb:ws://rating-chat-service', () => pm.expect(body.map(r => r.uri)).to.include('lb:ws://rating-chat-service'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "I3. Sante du service (acces direct 8085)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{service}}/actuator/health",
+            "description": "Etat du service : base MySQL et client Eureka."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Service UP', () => pm.expect(body.status).to.eql('UP'));",
+                  "pm.test('Base MySQL UP', () => pm.expect(body.components.db.status).to.eql('UP'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 - Ratings",
+      "item": [
+        {
+          "name": "R1. Creer : le passager note le conducteur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings",
+            "description": "Cas nominal. L'auteur est l'utilisateur de l'en-tete X-User-Id. Attendu : 201 Created + la note creee.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": {{bookingId}},\n  \"tripId\": {{tripId}},\n  \"ratedUserId\": {{driverId}},\n  \"raterRole\": \"PASSENGER\",\n  \"score\": 5,\n  \"comment\": \"Conducteur ponctuel et voiture propre\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Nouvelle reservation a chaque execution : la collection peut etre relancee sans erreur 409",
+                  "pm.collectionVariables.set('bookingId', String(Math.floor(Date.now() / 1000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Auteur = X-User-Id', () => pm.expect(body.raterId).to.eql(Number(pm.collectionVariables.get('passengerId'))));",
+                  "pm.test('Note = 5', () => pm.expect(body.score).to.eql(5));",
+                  "pm.test('En-tete Location', () => pm.response.to.have.header('Location'));",
+                  "pm.collectionVariables.set('ratingId', body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R2. Creer : le conducteur note le passager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings",
+            "description": "La meme reservation accepte une note dans chaque sens. Attendu : 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": {{bookingId}},\n  \"tripId\": {{tripId}},\n  \"ratedUserId\": {{passengerId}},\n  \"raterRole\": \"DRIVER\",\n  \"score\": 4,\n  \"comment\": \"Passager sympa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Role DRIVER', () => pm.expect(body.raterRole).to.eql('DRIVER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R3. Erreur : noter deux fois la meme reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings",
+            "description": "Une seule note par reservation et par auteur. Attendu : 409 Conflict.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": {{bookingId}},\n  \"tripId\": {{tripId}},\n  \"ratedUserId\": {{driverId}},\n  \"raterRole\": \"PASSENGER\",\n  \"score\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 409 Conflict', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Message explicite', () => pm.expect(body.detail).to.include('deja evalue'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R4. Erreur : note hors limites (8)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings",
+            "description": "Validation @Max(5). Attendu : 400 + le detail du champ dans errors.score.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": 999001,\n  \"tripId\": {{tripId}},\n  \"ratedUserId\": {{driverId}},\n  \"raterRole\": \"PASSENGER\",\n  \"score\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Erreur sur le champ score', () => pm.expect(body.errors.score).to.eql('La note maximale est 5'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R5. Erreur : se noter soi-meme",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings",
+            "description": "ratedUserId = X-User-Id. Attendu : 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": 999002,\n  \"tripId\": {{tripId}},\n  \"ratedUserId\": {{passengerId}},\n  \"raterRole\": \"PASSENGER\",\n  \"score\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Message explicite', () => pm.expect(body.detail).to.include('vous-meme'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R6. Erreur : sans en-tete X-User-Id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings",
+            "description": "L'utilisateur connecte est obligatoire. Attendu : 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": 999003,\n  \"tripId\": {{tripId}},\n  \"ratedUserId\": {{driverId}},\n  \"raterRole\": \"PASSENGER\",\n  \"score\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('En-tete signale', () => pm.expect(body.detail).to.include('X-User-Id'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R7. Lire une note",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/{{ratingId}}",
+            "description": "Lecture publique d'une note par son id. Attendu : 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Bon id', () => pm.expect(body.id).to.eql(Number(pm.collectionVariables.get('ratingId'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R8. Erreur : note inexistante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/999999999",
+            "description": "Attendu : 404 Not Found."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404 Not Found', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('Message explicite', () => pm.expect(body.detail).to.include('introuvable'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R9. Modifier sa note",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings/{{ratingId}}",
+            "description": "Seul l'auteur peut modifier. Attendu : 200 + la note modifiee (updatedAt mis a jour).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 4,\n  \"comment\": \"Bien, un peu en retard\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Note = 4', () => pm.expect(body.score).to.eql(4));",
+                  "pm.test('Commentaire modifie', () => pm.expect(body.comment).to.eql('Bien, un peu en retard'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R10. Erreur : modifier la note d'un autre",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings/{{ratingId}}",
+            "description": "Le conducteur n'est pas l'auteur de cette note. Attendu : 403 Forbidden.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 403 Forbidden', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R11. Reputation d'un utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/users/{{driverId}}/summary",
+            "description": "Moyenne, nombre d'avis, repartition par etoile, moyennes en tant que conducteur et passager."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Au moins 1 avis', () => pm.expect(body.totalRatings).to.be.at.least(1));",
+                  "pm.test('Moyenne entre 1 et 5', () => pm.expect(body.averageScore).to.be.within(1, 5));",
+                  "pm.test('Repartition 1 a 5 etoiles', () => pm.expect(Object.keys(body.distribution)).to.eql(['1','2','3','4','5']));",
+                  "pm.test('Avis recus en tant que conducteur', () => pm.expect(body.asDriver.totalRatings).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R12. Notes recues (paginees)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/users/{{driverId}}/received?page=0&size=5",
+            "description": "Plus recentes d'abord. Parametres : page (a partir de 0), size (max 100)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Format pagine', () => pm.expect(body).to.have.keys('content','page','size','totalElements','totalPages','last'));",
+                  "pm.test('Taille de page = 5', () => pm.expect(body.size).to.eql(5));",
+                  "pm.test('Toutes destinees au conducteur', () => body.content.forEach(r => pm.expect(r.ratedUserId).to.eql(Number(pm.collectionVariables.get('driverId')))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R13. Notes donnees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/users/{{passengerId}}/given",
+            "description": "Notes ecrites par le passager."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Toutes ecrites par le passager', () => body.content.forEach(r => pm.expect(r.raterId).to.eql(Number(pm.collectionVariables.get('passengerId')))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R14. Notes d'un trajet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/trips/{{tripId}}",
+            "description": "Toutes les notes liees au trajet."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Liste non vide', () => pm.expect(body.length).to.be.at.least(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R15. Notes d'une reservation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/bookings/{{bookingId}}",
+            "description": "0, 1 ou 2 notes : permet au frontend de savoir si l'utilisateur a deja note."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('2 notes (une dans chaque sens)', () => pm.expect(body.length).to.eql(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R16. Erreur : tri invalide",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/users/{{driverId}}/received?sort=inconnu",
+            "description": "Un champ de tri qui n'existe pas. Attendu : 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R17. Supprimer sa note",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/ratings/{{ratingId}}",
+            "description": "Seul l'auteur peut supprimer. Attendu : 204 No Content (corps vide)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R18. Verifier la suppression",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ratings/{{ratingId}}",
+            "description": "La note supprimee n'existe plus. Attendu : 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 - Chat",
+      "item": [
+        {
+          "name": "C1. Ouvrir la conversation (passager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations",
+            "description": "Cree la conversation, ou renvoie celle qui existe deja (appel idempotent). Attendu : 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tripId\": {{tripId}},\n  \"passengerId\": {{passengerId}},\n  \"driverId\": {{driverId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Interlocuteur = conducteur', () => pm.expect(body.otherParticipantId).to.eql(Number(pm.collectionVariables.get('driverId'))));",
+                  "pm.collectionVariables.set('conversationId', body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C2. Erreur : ouvrir une conversation des autres",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "99"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations",
+            "description": "L'utilisateur 99 n'est ni le passager ni le conducteur. Attendu : 403.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tripId\": {{tripId}},\n  \"passengerId\": {{passengerId}},\n  \"driverId\": {{driverId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 403 Forbidden', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C3. Envoyer un message (passager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/messages",
+            "description": "Enregistre le message et le diffuse aussi en WebSocket. Attendu : 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Bonjour, je vous attends devant la gare\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Expediteur = passager', () => pm.expect(body.senderId).to.eql(Number(pm.collectionVariables.get('passengerId'))));",
+                  "pm.test('Non lu', () => pm.expect(body.readAt).to.eql(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C4. Erreur : message vide",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/messages",
+            "description": "Validation @NotBlank. Attendu : 400 + errors.content.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"   \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Erreur sur le champ content', () => pm.expect(body.errors).to.have.property('content'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C5. Badge non-lus (conducteur)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/unread-count",
+            "description": "Nombre total de messages non lus du conducteur."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Au moins 1 non lu', () => pm.expect(body.unreadCount).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C6. Mes conversations (conducteur)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations",
+            "description": "La plus recente d'abord, avec l'apercu du dernier message et unreadCount."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const conv = body.find(c => c.id === Number(pm.collectionVariables.get('conversationId')));",
+                  "pm.test('La conversation est listee', () => pm.expect(conv).to.not.be.undefined);",
+                  "pm.test('Apercu du dernier message', () => pm.expect(conv.lastMessagePreview).to.eql('Bonjour, je vous attends devant la gare'));",
+                  "pm.test('Non-lus >= 1', () => pm.expect(conv.unreadCount).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C7. Historique des messages (conducteur)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/messages?page=0&size=20",
+            "description": "Du plus recent au plus ancien."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Dernier message en premier', () => pm.expect(body.content[0].content).to.eql('Bonjour, je vous attends devant la gare'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C8. Marquer comme lu (conducteur)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/read",
+            "description": "Marque les messages recus par le conducteur. Attendu : 200 + updatedCount."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Au moins 1 message marque', () => pm.expect(body.updatedCount).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C9. Detail de la conversation (conducteur)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}",
+            "description": "Apres C8, plus aucun non-lu pour le conducteur dans cette conversation."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('0 non lu', () => pm.expect(body.unreadCount).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C10. Repondre (conducteur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{driverId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/messages",
+            "description": "Attendu : 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"J'arrive dans 5 minutes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C11. Historique (passager)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/messages?size=2",
+            "description": "La reponse du conducteur est en tete, le message du passager est marque lu."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Reponse du conducteur en premier', () => pm.expect(body.content[0].senderId).to.eql(Number(pm.collectionVariables.get('driverId'))));",
+                  "pm.test('Message du passager lu', () => pm.expect(body.content[1].readAt).to.not.eql(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C12. Erreur : lire la conversation des autres",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "99"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/{{conversationId}}/messages",
+            "description": "Attendu : 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 403 Forbidden', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C13. Erreur : conversation inexistante",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{passengerId}}"
+              }
+            ],
+            "url": "{{gateway}}/api/chat/conversations/999999999",
+            "description": "Attendu : 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

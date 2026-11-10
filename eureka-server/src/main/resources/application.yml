@@ -1,0 +1,20 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # Le serveur ne s'enregistre pas aupres de lui-meme
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # En developpement : on retire vite les services arretes du registre
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 10000

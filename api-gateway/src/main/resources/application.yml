@@ -1,0 +1,71 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    loadbalancer:
+      cache:
+        ttl: 5s
+    gateway:
+      server:
+        webflux:
+          # CORS pour le frontend Angular (ng serve -> http://localhost:4200)
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins:
+                  - http://localhost:4200
+                  - http://localhost:8085
+                allowed-methods: "*"
+                allowed-headers: "*"
+                allow-credentials: true
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+          routes:
+            # ---------- Rating + Chat Service ----------
+            # WebSocket (STOMP) du chat : ws://localhost:8080/ws/chat
+            - id: rating-chat-websocket
+              uri: lb:ws://rating-chat-service
+              predicates:
+                - Path=/ws/**
+            # API REST : evaluations + messagerie
+            - id: rating-chat-service
+              uri: lb://rating-chat-service
+              predicates:
+                - Path=/api/ratings/**,/api/chat/**
+
+            # ---------- Autres microservices (a activer quand ils s'enregistrent dans Eureka) ----------
+            # - id: user-service
+            #   uri: lb://user-service
+            #   predicates:
+            #     - Path=/api/users/**,/api/auth/**
+            # - id: trip-service
+            #   uri: lb://trip-service
+            #   predicates:
+            #     - Path=/api/trips/**
+            # - id: booking-service
+            #   uri: lb://booking-service
+            #   predicates:
+            #     - Path=/api/bookings/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    # Developpement : la Gateway voit un service (re)demarre en ~5 s au lieu de ~30 s
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    # Liste des routes actives : http://localhost:8080/actuator/gateway/routes
+    gateway:
+      access: read-only

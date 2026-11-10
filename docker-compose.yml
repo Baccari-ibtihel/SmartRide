@@ -1,0 +1,57 @@
+# SmartRide - Rating + Chat Service avec Eureka et la Gateway, dans Docker.
+# Lancement : docker compose up --build        Arret : docker compose down
+# Ordre de demarrage : MySQL et Eureka, puis le Rating-Chat Service et la Gateway.
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: smartride-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"   # 3307 sur la machine : pas de conflit avec le MySQL de XAMPP (3306)
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  eureka-server:
+    build: ./eureka-server
+    image: smartride/eureka-server:1.0.0
+    container_name: smartride-eureka
+    ports:
+      - "8761:8761"
+
+  rating-chat-service:
+    build: ./rating-chat-service
+    image: smartride/rating-chat-service:1.0.0
+    container_name: smartride-rating-chat
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  api-gateway:
+    build: ./api-gateway
+    image: smartride/api-gateway:1.0.0
+    container_name: smartride-gateway
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+
+volumes:
+  mysql-data:

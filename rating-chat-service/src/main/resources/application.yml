@@ -1,0 +1,66 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    # Nom sous lequel le service apparait dans Eureka (utilise par la Gateway : lb://rating-chat-service)
+    name: rating-chat-service
+
+  # ---------- MySQL de XAMPP (MariaDB) : utilisateur root, sans mot de passe ----------
+  # La base "smartride_rating_chat" est creee automatiquement au premier demarrage.
+  # Sous Docker, DB_HOST / DB_USER / DB_PASSWORD sont fournis par docker-compose.yml.
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/smartride_rating_chat?createDatabaseIfNotExist=true
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    hibernate:
+      # update : Hibernate cree/met a jour les tables tout seul (pratique en developpement)
+      ddl-auto: update
+    open-in-view: false
+    show-sql: false
+
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+
+  cloud:
+    loadbalancer:
+      cache:
+        ttl: 5s
+
+# ---------- Eureka ----------
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    # Developpement : un autre service (re)demarre est visible en ~5 s au lieu de ~30 s
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+smartride:
+  websocket:
+    # Origines autorisees a ouvrir le WebSocket (Angular 4200, Gateway 8080, page de test 8085)
+    allowed-origin-patterns: http://localhost:*,http://127.0.0.1:*
+  booking-verification:
+    # Passer a true quand le Booking Service est enregistre dans Eureka
+    enabled: false
+    service-id: booking-service
+    allowed-statuses: COMPLETED

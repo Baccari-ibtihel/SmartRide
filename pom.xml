@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    POM "agregateur" : permet d'ouvrir les 3 projets d'un coup dans IntelliJ
+    et de tout compiler avec "mvn clean package" depuis ce dossier.
+    Chaque module reste un projet Spring Boot independant (un repo par microservice).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.smartride</groupId>
+    <artifactId>smartride-backend</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>smartride-backend</name>
+
+    <modules>
+        <module>eureka-server</module>
+        <module>api-gateway</module>
+        <module>rating-chat-service</module>
+    </modules>
+</project>
