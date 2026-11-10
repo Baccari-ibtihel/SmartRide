@@ -1,0 +1,70 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: smartride-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: smartride-eureka
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: smartride-gateway
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka
+    ports:
+      - "8085:8085"
+
+  notification-tracking:
+    build: ./notification-tracking-service
+    image: smartride/notification-tracking
+    container_name: smartride-notification-tracking
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: mongodb://mongo:27017
+      SERVICE_HOST: notification-tracking
+      SERVICE_PORT: "8000"
+      EUREKA_URL: http://eureka-server:8761/eureka
+    volumes:
+      - jwt_keys:/app/config/jwt
+      - ./notification-tracking-service/src:/app/src
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "([ -f config/jwt/private.pem ] || php bin/console lexik:jwt:generate-keypair --no-interaction) &&
+             (php bin/console doctrine:mongodb:schema:create || true) &&
+             php -S 0.0.0.0:8000 -t public"
+
+  notification-tracking-registrar:
+    image: smartride/notification-tracking
+    container_name: smartride-registrar
+    depends_on:
+      - notification-tracking
+      - eureka-server
+    environment:
+      MONGODB_URL: mongodb://mongo:27017
+      SERVICE_HOST: notification-tracking
+      SERVICE_PORT: "8000"
+      EUREKA_URL: http://eureka-server:8761/eureka
+    restart: unless-stopped
+    stop_grace_period: 10s
+    command: php bin/console app:eureka:register
+
+volumes:
+  mongo_data:
+  jwt_keys:

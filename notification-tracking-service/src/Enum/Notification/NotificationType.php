@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Enum\Notification;
+
+enum NotificationType: string
+{
+    case BOOKING_CONFIRMED = 'BOOKING_CONFIRMED';
+    case BOOKING_REJECTED = 'BOOKING_REJECTED';
+    case PAYMENT_SUCCESS = 'PAYMENT_SUCCESS';
+    case DRIVER_NEARBY = 'DRIVER_NEARBY';
+    case DRIVER_ARRIVED = 'DRIVER_ARRIVED';
+    case NEW_MESSAGE = 'NEW_MESSAGE';
+    case TRIP_CANCELLED = 'TRIP_CANCELLED';
+    case RATING_REQUEST = 'RATING_REQUEST';
+}

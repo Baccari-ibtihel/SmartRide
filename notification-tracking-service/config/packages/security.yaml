@@ -1,0 +1,20 @@
+security:
+    providers:
+        jwt:
+            lexik_jwt:
+                class: Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUser
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            stateless: true
+            provider: jwt
+            jwt: ~
+
+    access_control:
+        - { path: ^/api/health, roles: PUBLIC_ACCESS }
+        - { path: ^/api, methods: [DELETE], roles: ROLE_ADMIN }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
