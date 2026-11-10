@@ -50,15 +50,22 @@ services:
     networks:
       - smartride-net
 
-  postgres-trip:
-    image: postgres:15-alpine
-    container_name: smartride-db-trip
+  trip-db:
+    image: postgres:16-alpine
+    container_name: trip-db
     environment:
       POSTGRES_DB: trip_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: trip
+      POSTGRES_PASSWORD: trip
     ports:
-      - "5432:5432"
+      - "5435:5432"
+    volumes:
+      - trip_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trip -d trip_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - smartride-net
 
@@ -119,15 +126,19 @@ services:
 
   trip-service:
     build: ./trip-service
-    container_name: smartride-trip-service
+    container_name: trip-service
     ports:
       - "8082:8082"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-trip:5432/trip_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      SERVER_PORT: "8082"
+      DB_HOST: trip-db
+      DB_PORT: "5432"
+      DB_NAME: trip_db
+      DB_USER: trip
+      DB_PASSWORD: trip
     depends_on:
-      - postgres-trip
-      - discovery-server
+      trip-db:
+        condition: service_healthy
     networks:
       - smartride-net
 
@@ -198,6 +209,9 @@ services:
       - discovery-server
     networks:
       - smartride-net
+
+volumes:
+  trip_db_data:
 
 networks:
   smartride-net:
