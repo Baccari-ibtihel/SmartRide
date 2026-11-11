@@ -40,9 +40,10 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        // Public Endpoints: Auth, Eureka, Actuator, Swagger
+                        // Public Endpoints: Root Info, Auth, Eureka, Actuator, Swagger
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
                         .pathMatchers(
+                                "/",
                                 "/api/users/login",
                                 "/api/users/register",
                                 "/actuator/**",
