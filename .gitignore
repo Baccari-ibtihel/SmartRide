@@ -1,0 +1,10 @@
+# Root .gitignore for branch ibtihel
+Frontend/
+maven.zip
+maven/
+Backend/notification-tracking-service/
+node_modules/
+target/
+.idea/
+.vscode/
+*.log
