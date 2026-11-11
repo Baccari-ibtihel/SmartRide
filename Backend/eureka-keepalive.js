@@ -6,8 +6,7 @@ const services = [
     { app: 'PAYMENT-SERVICE', port: 8084 },
     { app: 'RATING-CHAT-SERVICE', port: 8085 },
     { app: 'NOTIFICATION-TRACKING-SERVICE', port: 8086 },
-    { app: 'MATCHING-IA-SERVICE', port: 8087 },
-    { app: 'CONFIG-SERVER', port: 8888 },
+    { app: 'MATCHING-IA-SERVICE', port: 8087 }
 ];
 
 function register(s) {
@@ -22,6 +21,9 @@ function register(s) {
             port: { '$': s.port, '@enabled': 'true' },
             vipAddress: s.app.toLowerCase(),
             secureVipAddress: s.app.toLowerCase(),
+            homePageUrl: `http://${s.app.toLowerCase()}:${s.port}/`,
+            statusPageUrl: `http://${s.app.toLowerCase()}:${s.port}/actuator/info`,
+            healthCheckUrl: `http://${s.app.toLowerCase()}:${s.port}/actuator/health`,
             dataCenterInfo: {
                 '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
                 name: 'MyOwn'
@@ -46,6 +48,18 @@ function register(s) {
     req.end();
 }
 
+function deregister(s) {
+    const instanceId = `${s.app.toLowerCase()}:${s.port}`;
+    const req = http.request({
+        hostname: 'localhost',
+        port: 8761,
+        path: `/eureka/apps/${s.app.toUpperCase()}/${instanceId}`,
+        method: 'DELETE'
+    }, () => {});
+    req.on('error', () => {});
+    req.end();
+}
+
 function heartbeat(s) {
     const instanceId = `${s.app.toLowerCase()}:${s.port}`;
     const req = http.request({
@@ -62,12 +76,18 @@ function heartbeat(s) {
     req.end();
 }
 
-// Initial registration
-services.forEach(register);
+// Deregister duplicate config-server if present
+deregister({ app: 'CONFIG-SERVER', port: 8888 });
+
+// Clean old registrations first and re-register with full homePageUrls
+services.forEach(s => {
+    deregister(s);
+    setTimeout(() => register(s), 600);
+});
 
 // Heartbeat every 20 seconds
 setInterval(() => {
     services.forEach(heartbeat);
 }, 20000);
 
-console.log('Eureka Polyglot Keepalive Daemon running...');
+console.log('Eureka Polyglot Keepalive Daemon running with full homePageUrls...');
