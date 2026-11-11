@@ -26,9 +26,15 @@ interface AdminUser {
           <h2>Gestion des Utilisateurs</h2>
           <p class="text-muted">Gérez les comptes, les autorisations et les statuts des utilisateurs de la plateforme</p>
         </div>
-        <button class="btn btn-primary" (click)="openAddModal()">
+        <button class="btn btn-primary btn-add" (click)="openAddModal()">
           <span>➕</span> Nouvel Utilisateur
         </button>
+      </div>
+
+      <!-- Success Notification Alert -->
+      <div class="alert alert-success animate-fade" *ngIf="successMessage">
+        <span>✅ {{ successMessage }}</span>
+        <button class="alert-close" (click)="successMessage = ''">✕</button>
       </div>
 
       <!-- Quick Metrics -->
@@ -155,6 +161,107 @@ interface AdminUser {
         </div>
       </div>
 
+      <!-- Modal : AJOUTER UN NOUVEL UTILISATEUR -->
+      <div class="modal-backdrop" *ngIf="isAddModalOpen" (click)="closeAddModal()">
+        <div class="modal-card card" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div>
+              <h3>➕ Ajouter un Nouvel Utilisateur</h3>
+              <p class="text-muted text-sm">Créez un nouveau compte conducteur, passager ou administrateur</p>
+            </div>
+            <button class="close-btn" (click)="closeAddModal()">✕</button>
+          </div>
+
+          <form (ngSubmit)="saveNewUser()">
+            <div class="modal-body">
+              <div class="alert alert-danger mb-2" *ngIf="formError">
+                ⚠️ {{ formError }}
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Nom & Prénom <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="ex: Khaled Ayari"
+                    [(ngModel)]="newUser.name"
+                    name="name"
+                    required
+                  />
+                </div>
+                <div class="form-group flex-1">
+                  <label>Rôle sur la plateforme <span class="text-danger">*</span></label>
+                  <select class="form-control" [(ngModel)]="newUser.role" name="role">
+                    <option value="PASSAGER">Passager (Standard)</option>
+                    <option value="CONDUCTEUR">Conducteur (Chauffeur)</option>
+                    <option value="ADMIN">Administrateur (Gestionnaire)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Adresse Email <span class="text-danger">*</span></label>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    placeholder="ex: khaled.ayari@gmail.com"
+                    [(ngModel)]="newUser.email"
+                    name="email"
+                    required
+                  />
+                </div>
+                <div class="form-group flex-1">
+                  <label>Numéro de Téléphone <span class="text-danger">*</span></label>
+                  <input 
+                    type="tel" 
+                    class="form-control" 
+                    placeholder="+216 98 123 456"
+                    [(ngModel)]="newUser.phone"
+                    name="phone"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Mot de passe provisoire <span class="text-danger">*</span></label>
+                  <input 
+                    type="password" 
+                    class="form-control" 
+                    placeholder="Minimum 6 caractères"
+                    [(ngModel)]="newUser.password"
+                    name="password"
+                    required
+                  />
+                </div>
+                <div class="form-group flex-1">
+                  <label>Statut Initial</label>
+                  <select class="form-control" [(ngModel)]="newUser.status" name="status">
+                    <option value="ACTIF">🟢 Actif immédiatement</option>
+                    <option value="EN_ATTENTE">🟡 En attente de validation</option>
+                    <option value="SUSPENDU">🔴 Suspendu</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-note">
+                ℹ️ L'utilisateur recevra ses identifiants et pourra se connecter directement avec les rôles assignés via Keycloak & User Service.
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="closeAddModal()">Annuler</button>
+              <button type="submit" class="btn btn-primary">
+                <span>➕</span> Créer l'utilisateur
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- User Detail Modal -->
       <div class="modal-backdrop" *ngIf="selectedUser" (click)="selectedUser = null">
         <div class="modal-card card" (click)="$event.stopPropagation()">
@@ -208,6 +315,7 @@ interface AdminUser {
     .admin-users-page { display: flex; flex-direction: column; gap: 20px; }
     .page-topbar { display: flex; justify-content: space-between; align-items: center; }
     .page-topbar h2 { font-size: 1.5rem; color: var(--primary); font-weight: 800; }
+    .btn-add { display: flex; align-items: center; gap: 8px; font-weight: 700; }
     
     .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .metric-card { text-align: center; padding: 16px; }
@@ -229,13 +337,30 @@ interface AdminUser {
 
     .empty-state { text-align: center; padding: 32px; }
 
-    .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
-      display: flex; align-items: center; justify-content: center; padding: 20px;
+    .alert {
+      padding: 12px 16px; border-radius: var(--radius-sm); display: flex;
+      justify-content: space-between; align-items: center; font-size: 0.9rem;
     }
-    .modal-card { width: 100%; max-width: 540px; animation: slideIn 0.2s ease; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-100); padding-bottom: 12px; }
-    .close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--gray-500); }
+    .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .alert-danger { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .alert-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: inherit; }
+
+    .form-row { display: flex; gap: 16px; margin-bottom: 12px; }
+    .flex-1 { flex: 1; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; color: var(--gray-700); }
+    .form-note { background: var(--gray-50); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--gray-600); margin-top: 10px; }
+    .text-sm { font-size: 0.82rem; margin-top: 2px; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      backdrop-filter: blur(2px);
+    }
+    .modal-card { width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; animation: slideIn 0.2s ease; }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--gray-100); padding-bottom: 12px; }
+    .modal-header h3 { font-size: 1.25rem; color: var(--primary); margin: 0; }
+    .close-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--gray-500); line-height: 1; }
+    .close-btn:hover { color: var(--danger); }
     .user-head { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
     .badge-group { display: flex; gap: 8px; }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -246,6 +371,7 @@ interface AdminUser {
     @media (max-width: 768px) {
       .metrics-row { grid-template-columns: repeat(2, 1fr); }
       .page-topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .form-row { flex-direction: column; gap: 8px; }
     }
   `]
 })
@@ -254,6 +380,26 @@ export class AdminUsersComponent {
   roleFilter = 'ALL';
   statusFilter = 'ALL';
   selectedUser: AdminUser | null = null;
+
+  isAddModalOpen = false;
+  formError = '';
+  successMessage = '';
+
+  newUser: {
+    name: string;
+    email: string;
+    phone: string;
+    role: 'PASSAGER' | 'CONDUCTEUR' | 'ADMIN';
+    status: 'ACTIF' | 'SUSPENDU' | 'EN_ATTENTE';
+    password: string;
+  } = {
+    name: '',
+    email: '',
+    phone: '+216 ',
+    role: 'PASSAGER',
+    status: 'ACTIF',
+    password: ''
+  };
 
   users: AdminUser[] = [
     { id: 101, name: 'Sami Mansouri', email: 'sami.mansouri@gmail.com', phone: '+216 98 450 120', role: 'CONDUCTEUR', status: 'ACTIF', tripsCount: 145, rating: 4.9, joinedDate: '12 Janv 2024', avatar: 'SM' },
@@ -296,6 +442,8 @@ export class AdminUsersComponent {
     if (confirm(`Confirmez-vous la suppression de l'utilisateur ${u.name} ?`)) {
       this.users = this.users.filter(x => x.id !== u.id);
       if (this.selectedUser?.id === u.id) this.selectedUser = null;
+      this.successMessage = `L'utilisateur ${u.name} a été supprimé.`;
+      setTimeout(() => this.successMessage = '', 3500);
     }
   }
 
@@ -304,6 +452,70 @@ export class AdminUsersComponent {
   }
 
   openAddModal() {
-    alert('Formulaire d\'ajout rapide activé : vous pouvez inviter de nouveaux utilisateurs ou modérateurs.');
+    this.formError = '';
+    this.newUser = {
+      name: '',
+      email: '',
+      phone: '+216 ',
+      role: 'PASSAGER',
+      status: 'ACTIF',
+      password: ''
+    };
+    this.isAddModalOpen = true;
+  }
+
+  closeAddModal() {
+    this.isAddModalOpen = false;
+    this.formError = '';
+  }
+
+  saveNewUser() {
+    if (!this.newUser.name.trim()) {
+      this.formError = 'Veuillez saisir le nom et prénom de l\'utilisateur.';
+      return;
+    }
+    if (!this.newUser.email.trim() || !this.newUser.email.includes('@')) {
+      this.formError = 'Veuillez saisir une adresse email valide.';
+      return;
+    }
+    if (!this.newUser.password || this.newUser.password.length < 6) {
+      this.formError = 'Le mot de passe doit comporter au moins 6 caractères.';
+      return;
+    }
+
+    // Calcul de l'avatar (initiales)
+    const parts = this.newUser.name.trim().split(' ');
+    const avatar = parts.length > 1 
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : this.newUser.name.trim().substring(0, 2).toUpperCase();
+
+    // Génération ID et date d'inscription
+    const nextId = Math.max(...this.users.map(u => u.id), 100) + 1;
+    const today = new Date();
+    const months = ['Janv', 'Févr', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+    const formattedDate = `${String(today.getDate()).padStart(2, '0')} ${months[today.getMonth()]} ${today.getFullYear()}`;
+
+    const createdUser: AdminUser = {
+      id: nextId,
+      name: this.newUser.name.trim(),
+      email: this.newUser.email.trim(),
+      phone: this.newUser.phone.trim() || '+216 -- --- ---',
+      role: this.newUser.role,
+      status: this.newUser.status,
+      tripsCount: 0,
+      rating: 5.0,
+      joinedDate: formattedDate,
+      avatar: avatar
+    };
+
+    // Ajout en début de liste
+    this.users.unshift(createdUser);
+
+    this.successMessage = `L'utilisateur ${createdUser.name} (#USR-${createdUser.id}) a été créé avec succès !`;
+    this.closeAddModal();
+
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 4500);
   }
 }
