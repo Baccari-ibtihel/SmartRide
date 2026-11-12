@@ -68,6 +68,17 @@ export interface StoredPaymentRecord {
   status: 'Payé' | 'En attente' | 'Remboursé';
 }
 
+export interface StoredReview {
+  id: number;
+  tripId: number;
+  name: string;
+  initials: string;
+  score: number;
+  comment: string;
+  tags?: string[];
+  date: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TripStoreService {
   private readonly TRIPS_KEY = 'smartride_trips';
@@ -462,5 +473,42 @@ export class TripStoreService {
         driverLat: 36.8970, driverLng: 10.1895, driverLastUpdate: new Date().toISOString()
       }
     ];
+  }
+
+  getReviews(tripId?: number): StoredReview[] {
+    const raw = localStorage.getItem('smartride_reviews_v1');
+    let list: StoredReview[] = [];
+    if (raw) {
+      try { list = JSON.parse(raw); } catch (e) { list = []; }
+    }
+    if (!list || list.length === 0) {
+      list = [
+        { id: 1, tripId: 1, initials: 'LB', name: 'Leila Bouazizi', score: 5, comment: 'Excellent conducteur, très ponctuel et agréable. Je recommande vivement !', tags: ['Ponctuel', 'Véhicule propre'], date: 'il y a 3 jours' },
+        { id: 2, tripId: 1, initials: 'MH', name: 'Mohamed Hammami', score: 4, comment: 'Bon trajet, voiture propre et confortable. Petit retard de 5 minutes.', tags: ['Conduite souple'], date: 'il y a 1 semaine' },
+        { id: 3, tripId: 1, initials: 'NK', name: 'Nadia Karray', score: 5, comment: 'Parfait comme toujours ! Mon covoitureur préféré.', tags: ['Ponctuel', 'Sympathique'], date: 'il y a 2 semaines' }
+      ];
+      localStorage.setItem('smartride_reviews_v1', JSON.stringify(list));
+    }
+    if (tripId) {
+      return list.filter(r => r.tripId === tripId || r.tripId === 1);
+    }
+    return list;
+  }
+
+  addReview(tripId: number, name: string, initials: string, score: number, comment: string, tags: string[] = []): StoredReview {
+    const reviews = this.getReviews();
+    const newRev: StoredReview = {
+      id: Date.now(),
+      tripId,
+      name,
+      initials,
+      score,
+      comment,
+      tags,
+      date: "À l'instant"
+    };
+    reviews.unshift(newRev);
+    localStorage.setItem('smartride_reviews_v1', JSON.stringify(reviews));
+    return newRev;
   }
 }

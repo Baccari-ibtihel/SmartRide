@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { TripStoreService, StoredTrip } from '../../../core/services/trip-store.service';
+import { TripStoreService, StoredTrip, StoredReview } from '../../../core/services/trip-store.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MapViewComponent } from '../../../shared/components/map-view/map-view.component';
 
 @Component({
   selector: 'app-trip-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MapViewComponent],
+  imports: [CommonModule, RouterModule, MapViewComponent, FormsModule],
   template: `
     <div class="detail-page" *ngIf="trip">
       <a routerLink="/user/search" class="back-link">← Retour aux résultats</a>
@@ -70,7 +71,28 @@ import { MapViewComponent } from '../../../shared/components/map-view/map-view.c
 
           <!-- Reviews -->
           <div class="card mt-3">
-            <h3>Avis sur le conducteur ({{ reviews.length }})</h3>
+            <div class="reviews-header-bar">
+              <h3>Avis sur le conducteur ({{ reviews.length }})</h3>
+              <button class="btn btn-sm btn-outline" (click)="showReviewForm = !showReviewForm">
+                {{ showReviewForm ? '✕ Fermer' : '✍️ Donner un avis' }}
+              </button>
+            </div>
+
+            <!-- Review form box -->
+            <div class="review-form-card" *ngIf="showReviewForm">
+              <h4>Évaluer ce conducteur / trajet</h4>
+              <div class="star-picker mb-2">
+                <span *ngFor="let s of [1,2,3,4,5]" class="star-btn" [class.active]="newScore >= s" (click)="newScore = s">★</span>
+                <span class="score-lbl">{{ newScore }} / 5 étoiles</span>
+              </div>
+              <div class="form-group mb-2">
+                <textarea class="form-control" rows="2" placeholder="Partagez votre avis sur ce trajet..." [(ngModel)]="newComment"></textarea>
+              </div>
+              <button class="btn btn-sm btn-primary" (click)="submitReview()">
+                ✓ Publier mon avis
+              </button>
+            </div>
+
             <div class="reviews-list">
               <div class="review-item" *ngFor="let r of reviews">
                 <div class="review-header">
@@ -194,6 +216,13 @@ import { MapViewComponent } from '../../../shared/components/map-view/map-view.c
     .prefs-list { display: flex; gap: 8px; flex-wrap: wrap; }
     .pref-badge { background: var(--gray-100); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; color: var(--gray-700); }
 
+    .reviews-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .review-form-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; }
+    .review-form-card h4 { font-size: 0.95rem; margin-bottom: 8px; color: var(--primary); }
+    .star-btn { font-size: 1.4rem; cursor: pointer; color: var(--gray-300); transition: color 0.15s; margin-right: 2px; }
+    .star-btn.active { color: #f59e0b; }
+    .score-lbl { font-size: 0.82rem; font-weight: 600; color: var(--gray-600); margin-left: 8px; }
+
     .reviews-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
     .review-item { padding: 16px; background: var(--gray-50); border-radius: var(--radius-sm); }
     .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -250,12 +279,11 @@ import { MapViewComponent } from '../../../shared/components/map-view/map-view.c
 export class TripDetailComponent implements OnInit {
   selectedSeats = 1;
   trip: StoredTrip | null = null;
+  reviews: StoredReview[] = [];
 
-  reviews = [
-    { initials: 'LB', name: 'Leila Bouazizi', score: 5, comment: 'Excellent conducteur, très ponctuel et agréable. Je recommande vivement !', date: 'il y a 3 jours' },
-    { initials: 'MH', name: 'Mohamed Hammami', score: 4, comment: 'Bon trajet, voiture propre et confortable. Petit retard de 5 minutes.', date: 'il y a 1 semaine' },
-    { initials: 'NK', name: 'Nadia Karray', score: 5, comment: 'Parfait comme toujours ! Mon covoitureur préféré.', date: 'il y a 2 semaines' },
-  ];
+  showReviewForm = false;
+  newScore = 5;
+  newComment = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -268,7 +296,21 @@ export class TripDetailComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
       this.trip = this.tripStore.getTripById(id) || null;
+      this.reviews = this.tripStore.getReviews(id);
     }
+  }
+
+  submitReview(): void {
+    if (!this.trip) return;
+    const user = this.authService.getCurrentUser();
+    const name = user ? `${user.firstName} ${user.lastName}` : 'Passager SmartRide';
+    const initials = user?.avatar || 'PS';
+    const comment = this.newComment.trim() || 'Trajet agréable et ponctuel.';
+    this.tripStore.addReview(this.trip.id, name, initials, this.newScore, comment);
+    this.reviews = this.tripStore.getReviews(this.trip.id);
+    this.newComment = '';
+    this.showReviewForm = false;
+    alert('⭐ Votre avis a été enregistré et publié avec succès !');
   }
 
   getArrivalTime(): string {

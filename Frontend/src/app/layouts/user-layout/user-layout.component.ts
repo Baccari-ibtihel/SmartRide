@@ -78,15 +78,7 @@ import { User } from '../../core/models/user.model';
                 </div>
                 <hr>
 
-                <!-- Role Quick Switch in Menu -->
-                <div class="dropdown-role-switch">
-                  <span class="d-label">Changer de rôle :</span>
-                  <div class="d-btns">
-                    <button class="d-btn" [class.active]="currentUser.role==='CONDUCTEUR'" (click)="switchRole('CONDUCTEUR')">🚗 Conducteur</button>
-                    <button class="d-btn" [class.active]="currentUser.role==='PASSAGER'" (click)="switchRole('PASSAGER')">🧑‍💼 Passager</button>
-                  </div>
-                </div>
-                <hr>
+
 
                 <a routerLink="/user/profile" (click)="dropdownOpen=false">👤 Mon Profil & Rôle</a>
                 <a routerLink="/user/publish-trip" (click)="dropdownOpen=false" *ngIf="currentUser.role === 'CONDUCTEUR'">🚗 Proposer un trajet</a>

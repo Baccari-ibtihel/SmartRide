@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
       <div class="page-header">
         <div>
           <h1>🔔 Centre de Notifications</h1>
-          <p class="subtitle">Microservice notification-tracking-service (Hafedh - PHP/Symfony)</p>
+          <p class="subtitle">Restez informé en temps réel de vos réservations, trajets et alertes de covoiturage</p>
         </div>
         <div class="header-actions">
           <button class="btn btn-primary btn-sm" (click)="addSimulatedNotification()">➕ Simuler Notification</button>

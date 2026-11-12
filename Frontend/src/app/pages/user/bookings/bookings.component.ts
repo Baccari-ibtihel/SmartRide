@@ -624,6 +624,11 @@ export class BookingsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const savedRatings = localStorage.getItem('smartride_user_ratings');
+    if (savedRatings) {
+      try { this.userRatings = JSON.parse(savedRatings); } catch (e) {}
+    }
+
     this.authService.currentUser$.subscribe(u => {
       this.currentUser = u;
       this.loadBookings();
@@ -805,14 +810,28 @@ export class BookingsComponent implements OnInit, OnDestroy {
   submitRating(): void {
     if (!this.activeRateBooking) return;
     this.userRatings[this.activeRateBooking.id] = this.selectedStars;
+    localStorage.setItem('smartride_user_ratings', JSON.stringify(this.userRatings));
+
     const trip = this.getTrip(this.activeRateBooking.tripId);
+    const authorName = this.currentUser ? `${this.currentUser.firstName} ${this.currentUser.lastName}` : 'Passager SmartRide';
+    const authorInitials = this.currentUser?.avatar || 'PS';
+
+    this.tripStore.addReview(
+      this.activeRateBooking.tripId,
+      authorName,
+      authorInitials,
+      this.selectedStars,
+      this.ratingComment,
+      [...this.selectedTags]
+    );
+
     alert(
       `⭐ ÉVALUATION ENREGISTRÉE AVEC SUCCÈS !\n\n` +
       `Conducteur : ${trip?.driverName || 'Sami Mansouri'}\n` +
       `Note : ${this.selectedStars} / 5 étoiles ⭐\n` +
       `Compliments : ${this.selectedTags.join(', ') || 'Aucun'}\n` +
       `Commentaire : "${this.ratingComment}"\n\n` +
-      `✅ Donnée transmise au microservice rating-chat-service (Hamza) !`
+      `✅ Donnée enregistrée et transmise au microservice rating-chat-service !`
     );
     this.closeRateModal();
   }
