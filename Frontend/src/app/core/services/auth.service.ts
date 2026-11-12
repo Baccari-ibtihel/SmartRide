@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { User, LoginRequest, RegisterRequest, AuthResponse } from '../models/user.model';
 import { environment } from '../../../environments/environment';
+import { KeycloakAdminService } from './keycloak-admin.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -12,7 +13,7 @@ export class AuthService {
 
   private readonly USERS_STORAGE_KEY = 'smartride_registered_users';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private keycloakAdmin: KeycloakAdminService) {
     this.initDefaultUsers();
   }
 
@@ -47,6 +48,18 @@ export class AuthService {
     const storedUser = { ...newUser, password: data.password };
     existingUsers.push(storedUser);
     localStorage.setItem(this.USERS_STORAGE_KEY, JSON.stringify(existingUsers));
+
+    // Sync user into Keycloak smartride-realm
+    this.keycloakAdmin.createUser({
+      name: `${data.firstName} ${data.lastName}`,
+      email: data.email,
+      role: newUser.role,
+      password: data.password,
+      phone: data.phone
+    }).subscribe({
+      next: () => console.log(`Keycloak: user ${data.email} created in realm smartride-realm`),
+      error: (e) => console.warn('Keycloak sync notice:', e)
+    });
 
     // Generate simulated JWT
     const token = this.generateToken(newUser);

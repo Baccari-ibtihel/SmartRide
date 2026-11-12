@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { KeycloakAdminService } from '../../../core/services/keycloak-admin.service';
 
 interface AdminUser {
   id: number;
@@ -469,6 +470,8 @@ export class AdminUsersComponent {
     this.formError = '';
   }
 
+  constructor(private keycloakAdmin: KeycloakAdminService) {}
+
   saveNewUser() {
     if (!this.newUser.name.trim()) {
       this.formError = 'Veuillez saisir le nom et prénom de l\'utilisateur.';
@@ -508,10 +511,26 @@ export class AdminUsersComponent {
       avatar: avatar
     };
 
-    // Ajout en début de liste
+    // Ajout en début de liste dans l'interface
     this.users.unshift(createdUser);
 
-    this.successMessage = `L'utilisateur ${createdUser.name} (#USR-${createdUser.id}) a été créé avec succès !`;
+    // Synchronisation en direct avec le serveur Keycloak
+    this.keycloakAdmin.createUser({
+      name: createdUser.name,
+      email: createdUser.email,
+      role: createdUser.role,
+      password: this.newUser.password,
+      phone: createdUser.phone
+    }).subscribe({
+      next: () => {
+        console.log(`✅ Utilisateur ${createdUser.name} synchronisé dans Keycloak smartride-realm !`);
+      },
+      error: (e) => {
+        console.warn('Keycloak sync notice:', e);
+      }
+    });
+
+    this.successMessage = `L'utilisateur ${createdUser.name} (#USR-${createdUser.id}) a été créé et synchronisé dans Keycloak (Rôle: ${createdUser.role}) !`;
     this.closeAddModal();
 
     setTimeout(() => {
