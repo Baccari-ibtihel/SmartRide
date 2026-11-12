@@ -49,16 +49,21 @@ export class AuthService {
     existingUsers.push(storedUser);
     localStorage.setItem(this.USERS_STORAGE_KEY, JSON.stringify(existingUsers));
 
-    // Sync user into Keycloak smartride-realm
-    this.keycloakAdmin.createUser({
+    // Register user in backend MySQL database and sync into Keycloak via API Gateway
+    const backendPayload = {
       name: `${data.firstName} ${data.lastName}`,
+      firstName: data.firstName,
+      lastName: data.lastName,
       email: data.email,
+      phone: data.phone || '+216 00 000 000',
       role: newUser.role,
-      password: data.password,
-      phone: data.phone
-    }).subscribe({
-      next: () => console.log(`Keycloak: user ${data.email} created in realm smartride-realm`),
-      error: (e) => console.warn('Keycloak sync notice:', e)
+      status: 'ACTIF',
+      password: data.password
+    };
+
+    this.http.post('http://localhost:8080/api/users/register', backendPayload).subscribe({
+      next: (res) => console.log('User registered in backend DB and Keycloak:', res),
+      error: (e) => console.warn('Backend user registration notice:', e)
     });
 
     // Generate simulated JWT

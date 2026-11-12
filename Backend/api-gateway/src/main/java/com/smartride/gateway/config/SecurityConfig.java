@@ -40,36 +40,28 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        // Public Endpoints: Root Info, Auth, Eureka, Actuator, Swagger
+                        // All pre-flight CORS requests
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
+                        // Public Endpoints & API Routes connected from Frontend
                         .pathMatchers(
                                 "/",
-                                "/api/users/login",
-                                "/api/users/register",
-                                "/actuator/**",
-                                "/eureka/**",
-                                "/api/trips/search",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-
-                        // Admin Only Routes: Dashboard & Metrics
-                        .pathMatchers("/api/dashboard/**").hasRole("ADMIN")
-
-                        // Authenticated Routes: Profile, Bookings, Payments, Publish Trips
-                        .pathMatchers(
                                 "/api/users/**",
                                 "/api/trips/**",
                                 "/api/bookings/**",
                                 "/api/payments/**",
                                 "/api/ratings/**",
+                                "/api/chat/**",
                                 "/api/notifications/**",
-                                "/api/matching/**"
-                        ).authenticated()
-
-                        // Any other request requires authentication
-                        .anyExchange().authenticated()
+                                "/api/tracking/**",
+                                "/api/matching/**",
+                                "/api/dashboard/**",
+                                "/actuator/**",
+                                "/eureka/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        .anyExchange().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor()))

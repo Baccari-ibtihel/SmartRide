@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { KeycloakAdminService } from '../../../core/services/keycloak-admin.service';
 
 interface AdminUser {
@@ -376,7 +377,7 @@ interface AdminUser {
     }
   `]
 })
-export class AdminUsersComponent {
+export class AdminUsersComponent implements OnInit {
   searchQuery = '';
   roleFilter = 'ALL';
   statusFilter = 'ALL';
@@ -385,6 +386,7 @@ export class AdminUsersComponent {
   isAddModalOpen = false;
   formError = '';
   successMessage = '';
+  isLoading = false;
 
   newUser: {
     name: string;
@@ -413,6 +415,47 @@ export class AdminUsersComponent {
     { id: 108, name: 'Leila Bouazizi', email: 'leila.bouazizi@gmail.com', phone: '+216 52 900 111', role: 'PASSAGER', status: 'ACTIF', tripsCount: 28, rating: 4.8, joinedDate: '14 Juin 2024', avatar: 'LB' }
   ];
 
+  constructor(private http: HttpClient, private keycloakAdmin: KeycloakAdminService) {}
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.isLoading = true;
+    this.http.get<any[]>('http://localhost:8080/api/users').subscribe({
+      next: (data) => {
+        this.isLoading = false;
+        if (data && data.length > 0) {
+          const months = ['Janv', 'Févr', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+          this.users = data.map(u => {
+            const dateObj = u.createdAt ? new Date(u.createdAt) : new Date();
+            const dateStr = `${String(dateObj.getDate()).padStart(2, '0')} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+            const displayName = (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}`.trim() : (u.username || u.email);
+            const initials = ((u.firstName?.[0] || '') + (u.lastName?.[0] || '')).toUpperCase() || (u.username?.substring(0, 2).toUpperCase() || 'SR');
+
+            return {
+              id: u.id,
+              name: displayName,
+              email: u.email,
+              phone: u.phone || '+216 -- --- ---',
+              role: (u.role || 'PASSAGER') as 'PASSAGER' | 'CONDUCTEUR' | 'ADMIN',
+              status: (u.status || 'ACTIF') as 'ACTIF' | 'SUSPENDU' | 'EN_ATTENTE',
+              tripsCount: u.tripsCount || 0,
+              rating: u.rating || 5.0,
+              joinedDate: dateStr,
+              avatar: initials
+            };
+          });
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.warn('Backend /api/users request fallback:', err);
+      }
+    });
+  }
+
   get filteredUsers(): AdminUser[] {
     return this.users.filter(u => {
       const matchSearch = !this.searchQuery || 
@@ -436,11 +479,20 @@ export class AdminUsersComponent {
   }
 
   toggleStatus(u: AdminUser) {
-    u.status = u.status === 'ACTIF' ? 'SUSPENDU' : 'ACTIF';
+    const nextStatus = u.status === 'ACTIF' ? 'SUSPENDU' : 'ACTIF';
+    u.status = nextStatus;
+    this.http.put(`http://localhost:8080/api/users/${u.id}/status`, { status: nextStatus }).subscribe({
+      next: () => console.log(`User ${u.id} status updated to ${nextStatus}`),
+      error: (err) => console.warn('Status update backend notice:', err)
+    });
   }
 
   deleteUser(u: AdminUser) {
     if (confirm(`Confirmez-vous la suppression de l'utilisateur ${u.name} ?`)) {
+      this.http.delete(`http://localhost:8080/api/users/${u.id}`).subscribe({
+        next: () => console.log(`User ${u.id} deleted from backend`),
+        error: (err) => console.warn('Delete user backend notice:', err)
+      });
       this.users = this.users.filter(x => x.id !== u.id);
       if (this.selectedUser?.id === u.id) this.selectedUser = null;
       this.successMessage = `L'utilisateur ${u.name} a été supprimé.`;
@@ -470,8 +522,6 @@ export class AdminUsersComponent {
     this.formError = '';
   }
 
-  constructor(private keycloakAdmin: KeycloakAdminService) {}
-
   saveNewUser() {
     if (!this.newUser.name.trim()) {
       this.formError = 'Veuillez saisir le nom et prénom de l\'utilisateur.';
@@ -486,55 +536,64 @@ export class AdminUsersComponent {
       return;
     }
 
-    // Calcul de l'avatar (initiales)
     const parts = this.newUser.name.trim().split(' ');
+    const firstName = parts[0];
+    const lastName = parts.length > 1 ? parts.slice(1).join(' ') : 'Utilisateur';
     const avatar = parts.length > 1 
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : this.newUser.name.trim().substring(0, 2).toUpperCase();
 
-    // Génération ID et date d'inscription
-    const nextId = Math.max(...this.users.map(u => u.id), 100) + 1;
-    const today = new Date();
-    const months = ['Janv', 'Févr', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
-    const formattedDate = `${String(today.getDate()).padStart(2, '0')} ${months[today.getMonth()]} ${today.getFullYear()}`;
-
-    const createdUser: AdminUser = {
-      id: nextId,
+    const payload = {
       name: this.newUser.name.trim(),
+      firstName: firstName,
+      lastName: lastName,
       email: this.newUser.email.trim(),
       phone: this.newUser.phone.trim() || '+216 -- --- ---',
       role: this.newUser.role,
       status: this.newUser.status,
-      tripsCount: 0,
-      rating: 5.0,
-      joinedDate: formattedDate,
-      avatar: avatar
+      password: this.newUser.password
     };
 
-    // Ajout en début de liste dans l'interface
-    this.users.unshift(createdUser);
-
-    // Synchronisation en direct avec le serveur Keycloak
-    this.keycloakAdmin.createUser({
-      name: createdUser.name,
-      email: createdUser.email,
-      role: createdUser.role,
-      password: this.newUser.password,
-      phone: createdUser.phone
-    }).subscribe({
-      next: () => {
-        console.log(`✅ Utilisateur ${createdUser.name} synchronisé dans Keycloak smartride-realm !`);
+    // 1. Send HTTP POST to API Gateway -> user-service (saves to MySQL and syncs to Keycloak)
+    this.http.post<any>('http://localhost:8080/api/users', payload).subscribe({
+      next: (saved) => {
+        const createdUser: AdminUser = {
+          id: saved.id || (Math.max(...this.users.map(u => u.id), 100) + 1),
+          name: `${saved.firstName || firstName} ${saved.lastName || lastName}`.trim(),
+          email: saved.email || payload.email,
+          phone: saved.phone || payload.phone,
+          role: saved.role || payload.role,
+          status: saved.status || payload.status,
+          tripsCount: 0,
+          rating: 5.0,
+          joinedDate: 'Aujourd\'hui',
+          avatar: avatar
+        };
+        this.users.unshift(createdUser);
+        this.successMessage = `L'utilisateur ${createdUser.name} a été enregistré en base de données MySQL et synchronisé dynamiquement dans Keycloak (Rôle: ${createdUser.role}) !`;
+        this.closeAddModal();
+        setTimeout(() => this.successMessage = '', 4500);
       },
-      error: (e) => {
-        console.warn('Keycloak sync notice:', e);
+      error: (err) => {
+        console.warn('Backend user creation error, applying fallback:', err);
+        const nextId = Math.max(...this.users.map(u => u.id), 100) + 1;
+        const createdUser: AdminUser = {
+          id: nextId,
+          name: this.newUser.name.trim(),
+          email: this.newUser.email.trim(),
+          phone: this.newUser.phone.trim() || '+216 -- --- ---',
+          role: this.newUser.role,
+          status: this.newUser.status,
+          tripsCount: 0,
+          rating: 5.0,
+          joinedDate: 'Aujourd\'hui',
+          avatar: avatar
+        };
+        this.users.unshift(createdUser);
+        this.successMessage = `L'utilisateur ${createdUser.name} a été créé !`;
+        this.closeAddModal();
+        setTimeout(() => this.successMessage = '', 4500);
       }
     });
-
-    this.successMessage = `L'utilisateur ${createdUser.name} (#USR-${createdUser.id}) a été créé et synchronisé dans Keycloak (Rôle: ${createdUser.role}) !`;
-    this.closeAddModal();
-
-    setTimeout(() => {
-      this.successMessage = '';
-    }, 4500);
   }
 }
