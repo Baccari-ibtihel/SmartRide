@@ -3,6 +3,7 @@ package com.smartride.user.controller;
 import com.smartride.user.model.User;
 import com.smartride.user.repository.UserRepository;
 import com.smartride.user.service.KeycloakSyncService;
+import com.smartride.user.service.RabbitMQEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,14 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final KeycloakSyncService keycloakSyncService;
+    private final RabbitMQEventPublisher rabbitMQEventPublisher;
 
-    public UserController(UserRepository userRepository, KeycloakSyncService keycloakSyncService) {
+    public UserController(UserRepository userRepository, 
+                          KeycloakSyncService keycloakSyncService,
+                          RabbitMQEventPublisher rabbitMQEventPublisher) {
         this.userRepository = userRepository;
         this.keycloakSyncService = keycloakSyncService;
+        this.rabbitMQEventPublisher = rabbitMQEventPublisher;
     }
 
     @GetMapping("/health")
@@ -93,8 +98,11 @@ public class UserController {
 
         User saved = userRepository.save(user);
 
-        // Sync directly into Keycloak
+        // 1. Sync directly into Keycloak smartride-realm
         keycloakSyncService.syncUser(saved, password);
+
+        // 2. Publish User Registered event into RabbitMQ (consumed by Dashboard Service)
+        rabbitMQEventPublisher.publishUserRegistered(saved);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
@@ -103,17 +111,19 @@ public class UserController {
     public ResponseEntity<User> toggleStatus(@PathVariable Long id) {
         return userRepository.findById(id).map(u -> {
             u.setStatus("ACTIF".equals(u.getStatus()) ? "SUSPENDU" : "ACTIF");
-            return ResponseEntity.ok(userRepository.save(u));
+            User updated = userRepository.save(u);
+            rabbitMQEventPublisher.publishUserUpdated(updated);
+            return ResponseEntity.ok(updated);
         }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (userRepository.existsById(id)) {
+        return userRepository.findById(id).map(u -> {
             userRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+            rabbitMQEventPublisher.publishUserDeleted(id, u.getEmail());
+            return ResponseEntity.noContent().<Void>build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/stats")
